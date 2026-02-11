@@ -1,0 +1,42 @@
+import React from 'react';
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Recipe } from '@/lib/types';
+import { Button, buttonVariants } from './ui/button';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
+
+export default function RecipeCard({ recipe }: { recipe: Recipe }) {
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>{recipe.title}</CardTitle>
+				<CardDescription>Ready in 20 minutes</CardDescription>
+			</CardHeader>
+
+			<CardContent>
+				<p>{recipe.description}</p>
+			</CardContent>
+
+			{/* This is where "Card Actions" live */}
+			<CardFooter className="flex justify-between">
+				<Link
+					href={`/recipes/${recipe.id}`}
+					className={buttonVariants({ variant: 'outline' })}
+				>
+					View Details
+				</Link>
+				<Button>
+					<Plus />
+				</Button>
+			</CardFooter>
+		</Card>
+	);
+}
