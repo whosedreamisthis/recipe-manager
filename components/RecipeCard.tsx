@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import {
 	Card,
 	CardAction,
@@ -10,10 +11,15 @@ import {
 } from '@/components/ui/card';
 import { Recipe } from '@/lib/types';
 import { Button, buttonVariants } from './ui/button';
-import { Plus } from 'lucide-react';
+import { Heart, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { useFavouriteStore } from '@/stores/useFavouriteStore';
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
+	const toggleFavourite = useFavouriteStore((state) => state.toggleFavourite);
+	const favourites = useFavouriteStore((state) => state.favourites);
+	const isFavourite = favourites.includes(recipe.id);
+
 	return (
 		<Card>
 			<CardHeader>
@@ -33,8 +39,12 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 				>
 					View Details
 				</Link>
-				<Button>
-					<Plus />
+				<Button
+					onClick={() => {
+						toggleFavourite(recipe.id);
+					}}
+				>
+					<Heart className={`${isFavourite ? 'fill-white' : ''} `} />
 				</Button>
 			</CardFooter>
 		</Card>

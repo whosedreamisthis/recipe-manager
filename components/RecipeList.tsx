@@ -8,8 +8,13 @@ import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSearchStore } from '@/stores/useSearchStore';
+import { useUIStore } from '@/stores/useUIStore';
+import { useFavouriteStore } from '@/stores/useFavouriteStore';
 
 export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
+	const activeTab = useUIStore((state) => state.activeTab);
+	const favourites = useFavouriteStore((state) => state.favourites);
+	console.log('activeTab', activeTab);
 	// const [filteredRecipes, setFilteredRecipes] = useState(recipes);
 	const selectedCategory = useCategoryStore(
 		(state) => state.selectedCategory,
@@ -35,10 +40,11 @@ export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 					recipe.categories.includes(selectedCategory)) &&
 				recipe.title
 					.toLowerCase()
-					.includes(debouncedQuery.toLowerCase())
+					.includes(debouncedQuery.toLowerCase()) &&
+				(activeTab !== 'favourites' || favourites.includes(recipe.id))
 			);
 		});
-	}, [recipes, selectedCategory, debouncedQuery]);
+	}, [recipes, selectedCategory, debouncedQuery, activeTab, favourites]);
 
 	return (
 		<div className="grid grid-cols-1 gap-5">
