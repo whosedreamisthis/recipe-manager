@@ -47,7 +47,7 @@ export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 	}, [recipes, selectedCategory, debouncedQuery, activeTab, favourites]);
 
 	return (
-		<div className="grid grid-cols-1 gap-5">
+		<div className="grid grid-cols-2 gap-5">
 			{filteredRecipes.map((recipe) => {
 				return (
 					<div key={recipe.id}>
