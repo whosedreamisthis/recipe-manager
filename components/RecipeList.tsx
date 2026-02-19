@@ -5,7 +5,7 @@ import { RECIPE_CATEGORIES } from '@/data/seed-recipes';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 
@@ -15,7 +15,17 @@ export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 		(state) => state.selectedCategory,
 	);
 	const query = useSearchStore((state) => state.query);
+	const [debouncedQuery, setDebouncedQuery] = useState(query);
 
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedQuery(query);
+		}, 300);
+
+		return () => {
+			if (handler) clearTimeout(handler);
+		};
+	}, [query]);
 	const filteredRecipes = useMemo(() => {
 		console.log('Filtering recipes...'); // Useful for testing if it's working
 
@@ -23,10 +33,12 @@ export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 			return (
 				(selectedCategory === '' ||
 					recipe.categories.includes(selectedCategory)) &&
-				recipe.title.toLowerCase().includes(query.toLowerCase())
+				recipe.title
+					.toLowerCase()
+					.includes(debouncedQuery.toLowerCase())
 			);
 		});
-	}, [recipes, selectedCategory, query]);
+	}, [recipes, selectedCategory, debouncedQuery]);
 
 	return (
 		<div className="grid grid-cols-1 gap-5">
