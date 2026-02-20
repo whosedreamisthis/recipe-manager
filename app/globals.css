@@ -137,3 +137,8 @@
     scrollbar-width: none;  /* Firefox */
   }
 }
+
+@theme {
+  /* This maps the "font-sans" utility to your Google Font variable */
+  --font-sans: var(--font-main);
+}

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
+import Image from 'next/image';
 
 interface Props {
 	recipe: Recipe;
@@ -11,7 +12,57 @@ export default function RecipeDetails({ recipe }: Props) {
 	addToRecent(recipe.id);
 	return (
 		<div>
-			<p>{recipe.title}</p>
+			<div className="relative h-44 w-full overflow-hidden">
+				<Image
+					src={recipe.image}
+					alt={recipe.title}
+					fill
+					className="object-cover transition-transform duration-500 group-hover:scale-110"
+					sizes="(max-width: 768px) 100vw, 33vw"
+				/>
+			</div>
+			<h1 className="font-bold mt-5 mb-2 text-3xl">{recipe.title}</h1>
+			<p>{recipe.description}</p>
+			<div className="border-b mt-4 border-1 border-black"></div>
+			<h2 className="uppercase text-lg underline my-2 text-center">
+				Ingredients
+			</h2>
+			<ul className="m-auto w-[40%]">
+				<li>
+					<div></div>
+				</li>
+				{recipe.ingredients.map((ingredient, index) => (
+					<div key={index} className="flex justify-between">
+						<p>{ingredient.name}</p>
+						<div className="flex gap-2">
+							<p>{ingredient.quantity}</p>
+							<p>{ingredient.unit}</p>
+						</div>
+					</div>
+				))}
+			</ul>
+			<div className="border-b mt-4 border-1 border-black"></div>
+			<h2 className="uppercase text-lg underline my-2 text-center">
+				Instructions
+			</h2>
+			<ol>
+				{recipe.instructions.map((step, index) => {
+					return (
+						<li
+							key={index}
+							className="relative pl-12 pt-3 before:content-[counter(step)] [counter-increment:step] 
+                       before:absolute before:left-0 before:top-3 
+                       before:flex before:h-8 before:w-8 before:items-center before:justify-center 
+                        before:bg-cyan-50 before:text-sm before:font-bold 
+                       before:text-cyan-600 before:border before:border-cyan-100"
+						>
+							<p className="text-slate-700 leading-relaxed pt-1">
+								{step}
+							</p>
+						</li>
+					);
+				})}
+			</ol>
 		</div>
 	);
 }

@@ -28,9 +28,19 @@ export default function BottomNav() {
 					}
 				/>
 			</Link>
-			<Clock />
+
 			<Link href="/recent/">
 				<ScrollText
+					onClick={() => setActiveTab('recent')}
+					className={
+						activeTab === 'recent'
+							? 'text-cyan-500'
+							: 'text-slate-400'
+					}
+				/>
+			</Link>
+			<Link href="/recent/">
+				<Clock
 					onClick={() => setActiveTab('recent')}
 					className={
 						activeTab === 'recent'
