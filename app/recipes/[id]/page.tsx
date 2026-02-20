@@ -1,4 +1,5 @@
 import { fetchRecipe } from '@/app/actions';
+import RecipeDetails from '@/components/RecipeDetails';
 import { Recipe } from '@/lib/types';
 import React from 'react';
 
@@ -9,9 +10,13 @@ export default async function RecipePage({
 }) {
 	const { id } = await params;
 	const recipe = await fetchRecipe(id);
+
+	if (!recipe) {
+		throw new Error('Failed to fetch recipe');
+	}
 	return (
 		<div>
-			<h1>{recipe?.title}</h1>
+			<RecipeDetails recipe={recipe} />
 		</div>
 	);
 }

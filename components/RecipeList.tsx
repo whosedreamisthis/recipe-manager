@@ -10,11 +10,12 @@ import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { useSavedStore } from '@/stores/useSavedStore';
+import { useRecentStore } from '@/stores/useRecentStore';
 
 export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 	const activeTab = useUIStore((state) => state.activeTab);
 	const saved = useSavedStore((state) => state.saved);
-	console.log('activeTab', activeTab);
+
 	// const [filteredRecipes, setFilteredRecipes] = useState(recipes);
 	const selectedCategory = useCategoryStore(
 		(state) => state.selectedCategory,
