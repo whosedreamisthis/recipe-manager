@@ -1,4 +1,6 @@
 'use client';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useSearchStore } from '@/stores/useSearchStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { Clock, Bookmark, ScrollText, Search } from 'lucide-react';
 import Link from 'next/link';
@@ -6,13 +8,22 @@ import React from 'react';
 
 export default function BottomNav() {
 	const { activeTab, setActiveTab } = useUIStore();
+	const setQuery = useSearchStore((state) => state.setQuery);
+	const setCategory = useCategoryStore((state) => state.setCategory);
+
+	const handleTabChange = (newTab: string) => {
+		setActiveTab(newTab);
+		// Reset filters so the new tab starts "fresh"
+		setQuery('');
+		setCategory('');
+	};
 
 	return (
 		<div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around items-center z-50">
 			{/* 1. SEARCH TAB */}
 			<Link
 				href="/"
-				onClick={() => setActiveTab('search')}
+				onClick={() => handleTabChange('search')}
 				className="flex flex-col items-center gap-1"
 			>
 				<Search
@@ -27,7 +38,7 @@ export default function BottomNav() {
 			{/* 2. SAVED TAB (Uses URL Param) */}
 			<Link
 				href="/?tab=saved"
-				onClick={() => setActiveTab('saved')}
+				onClick={() => handleTabChange('saved')}
 				className="flex flex-col items-center gap-1"
 			>
 				<Bookmark
@@ -42,7 +53,7 @@ export default function BottomNav() {
 			{/* 3. RECENT PAGE */}
 			<Link
 				href="/recent"
-				onClick={() => setActiveTab('recent')}
+				onClick={() => handleTabChange('recent')}
 				className="flex flex-col items-center gap-1"
 			>
 				<Clock
@@ -57,7 +68,7 @@ export default function BottomNav() {
 			{/* 4. GROCERIES PAGE */}
 			<Link
 				href="/shopping-list"
-				onClick={() => setActiveTab('shopping-list')}
+				onClick={() => handleTabChange('shopping-list')}
 				className="flex flex-col items-center gap-1"
 			>
 				<ScrollText
