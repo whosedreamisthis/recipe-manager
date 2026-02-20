@@ -2,14 +2,36 @@
 import { Recipe } from '@/lib/types';
 import { useRecentStore } from '@/stores/useRecentStore';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import RecipeCard from './RecipeCard';
 
 interface Props {
 	recipes: Recipe[];
 }
 export default function RecentList() {
+	const [isHydrated, setIsHydrated] = useState(false);
 	const recentRecipes = useRecentStore((state) => state.recentRecipes);
+
+	useEffect(() => {
+		setIsHydrated(true);
+	}, []);
+
+	if (!isHydrated) {
+		return (
+			<div className="grid grid-cols-2 gap-5 opacity-0">
+				<div className="h-40 bg-slate-100 rounded-xl animate-pulse" />
+				<div className="h-40 bg-slate-100 rounded-xl animate-pulse" />
+			</div>
+		);
+	}
+
+	if (recentRecipes.length === 0) {
+		return (
+			<div className="text-center py-10 text-slate-500">
+				No recent recipes found.
+			</div>
+		);
+	}
 
 	return (
 		<div className="grid grid-cols-2 gap-5">
