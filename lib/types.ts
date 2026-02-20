@@ -3,4 +3,7 @@ export interface Recipe {
 	title: string;
 	description: string;
 	categories: string[];
+	prepTime: number;
+	cookTime: number;
+	likes: number;
 }

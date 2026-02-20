@@ -9,11 +9,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useUIStore } from '@/stores/useUIStore';
-import { useFavouriteStore } from '@/stores/useFavouriteStore';
+import { useSavedStore } from '@/stores/useSavedStore';
 
 export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 	const activeTab = useUIStore((state) => state.activeTab);
-	const favourites = useFavouriteStore((state) => state.favourites);
+	const saved = useSavedStore((state) => state.saved);
 	console.log('activeTab', activeTab);
 	// const [filteredRecipes, setFilteredRecipes] = useState(recipes);
 	const selectedCategory = useCategoryStore(
@@ -41,10 +41,10 @@ export default function RecipeList({ recipes }: { recipes: Recipe[] }) {
 				recipe.title
 					.toLowerCase()
 					.includes(debouncedQuery.toLowerCase()) &&
-				(activeTab !== 'favourites' || favourites.includes(recipe.id))
+				(activeTab !== 'saved' || saved.includes(recipe.id))
 			);
 		});
-	}, [recipes, selectedCategory, debouncedQuery, activeTab, favourites]);
+	}, [recipes, selectedCategory, debouncedQuery, activeTab, saved]);
 
 	return (
 		<div className="grid grid-cols-2 gap-5">

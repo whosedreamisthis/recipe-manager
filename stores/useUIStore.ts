@@ -6,6 +6,6 @@ type UIType = {
 	setActiveTab: (tab: string) => void;
 };
 export const useUIStore = create<UIType>((set) => ({
-	activeTab: 'search', // 'search' | 'favourites' | 'recent'
+	activeTab: 'search', // 'search' | 'saved' | 'recent'
 	setActiveTab: (tab) => set({ activeTab: tab }),
 }));

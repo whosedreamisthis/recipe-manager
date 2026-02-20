@@ -1,6 +1,6 @@
 'use client';
 import { useUIStore } from '@/stores/useUIStore';
-import { Clock, Heart, ScrollText, Search } from 'lucide-react';
+import { Clock, Bookmark, ScrollText, Search } from 'lucide-react';
 import React from 'react';
 
 export default function BottomNav() {
@@ -13,12 +13,10 @@ export default function BottomNav() {
 					activeTab === 'search' ? 'text-cyan-500' : 'text-slate-400'
 				}
 			/>
-			<Heart
-				onClick={() => setActiveTab('favourites')}
+			<Bookmark
+				onClick={() => setActiveTab('saved')}
 				className={
-					activeTab === 'favourites'
-						? 'text-red-500 fill-red-400'
-						: 'text-slate-400'
+					activeTab === 'saved' ? 'fill-gray-700' : 'text-slate-400'
 				}
 			/>
 			<Clock />
