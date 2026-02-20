@@ -1,26 +1,24 @@
+import { Recipe } from '@/lib/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface RecentState {
-	recentIds: string[];
-	addToRecent: (id: string) => void;
+	recentRecipes: Recipe[];
+	addRecent: (recipe: Recipe) => void;
 }
 
 export const useRecentStore = create<RecentState>()(
 	persist(
 		(set) => ({
-			recentIds: [],
-			addToRecent: (id) =>
+			recentRecipes: [],
+			addRecent: (recipe) =>
 				set((state) => {
-					// 1. Remove the ID if it already exists (to avoid duplicates)
-					const filtered = state.recentIds.filter(
-						(existingId) => existingId !== id,
+					// Remove if already exists to move it to the front
+					const filtered = state.recentRecipes.filter(
+						(r) => r.id !== recipe.id,
 					);
-
-					// 2. Add to the front and limit to 10
-					const updated = [id, ...filtered].slice(0, 10);
-
-					return { recentIds: updated };
+					// Keep only the most recent 4 items
+					return { recentRecipes: [recipe, ...filtered].slice(0, 4) };
 				}),
 		}),
 		{ name: 'recent-recipes' },

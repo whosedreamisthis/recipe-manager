@@ -9,14 +9,18 @@ import { RECIPE_CATEGORIES } from '@/data/seed-recipes';
 import CategoryBar from '@/components/CategoryBar';
 import SearchBar from '@/components/SearchBar';
 export default async function RecipesPage() {
-	const recipes = await fetchRecipes();
+	// Fetch only the first 12 recipes for the initial load
+	const { recipes, hasMore } = await fetchRecipes(1, 12);
 
 	return (
-		<div>
+		<div className="container mx-auto px-4">
 			<SearchBar />
 			<CategoryBar />
 
-			<RecipeList recipes={recipes} />
+			{/* Pass 'recipes' and 'hasMore' to your list. 
+          Note: You'll need to update RecipeList to handle the "Load More" logic 
+      */}
+			<RecipeList initialRecipes={recipes} initialHasMore={hasMore} />
 		</div>
 	);
 }

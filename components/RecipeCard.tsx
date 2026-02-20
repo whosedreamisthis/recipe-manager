@@ -11,10 +11,10 @@ import { useLikedStore } from '@/stores/useLikedStore';
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 	const toggleSaved = useSavedStore((state) => state.toggleSaved);
-	const saved = useSavedStore((state) => state.saved);
+	const savedRecipes = useSavedStore((state) => state.savedRecipes);
 	const liked = useLikedStore((state) => state.liked);
 	const toggleLiked = useLikedStore((state) => state.toggleLiked);
-	const isSaved = saved.includes(recipe.id);
+	const isSaved = savedRecipes?.some((r) => r.id === recipe.id) ?? false;
 	const isLiked = liked.includes(recipe.id);
 
 	return (
@@ -88,7 +88,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						toggleSaved(recipe.id);
+						toggleSaved(recipe);
 					}}
 				>
 					<Bookmark

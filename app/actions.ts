@@ -4,10 +4,18 @@ import { Recipe } from '@/lib/types';
 
 let db = SEED_RECIPES;
 
-export const fetchRecipes = async () => {
-	await new Promise((res) => setTimeout(res, 2000));
-	return [...db];
-};
+export async function fetchRecipes(page: number = 1, limit: number = 12) {
+	// Simulate a database delay
+	await new Promise((resolve) => setTimeout(resolve, 500));
+
+	const start = (page - 1) * limit;
+	const end = start + limit;
+
+	const recipes = SEED_RECIPES.slice(start, end);
+	const hasMore = end < SEED_RECIPES.length;
+	console.log('RECIPES', SEED_RECIPES.slice(start, end)[11]);
+	return { recipes, hasMore };
+}
 
 export const fetchRecipe = async (recipeId: string) => {
 	await new Promise((res) => setTimeout(res, 2000));

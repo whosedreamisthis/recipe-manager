@@ -8,8 +8,8 @@ interface Props {
 	recipe: Recipe;
 }
 export default function RecipeDetails({ recipe }: Props) {
-	const addToRecent = useRecentStore((state) => state.addToRecent);
-	addToRecent(recipe.id);
+	const addRecent = useRecentStore((state) => state.addRecent);
+	addRecent(recipe);
 	return (
 		<div>
 			<div className="relative h-44 w-full overflow-hidden">
