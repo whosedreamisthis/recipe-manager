@@ -1,5 +1,6 @@
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { Button } from '../ui/button';
 
 export default function Step2Ingredients() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
@@ -53,19 +54,22 @@ export default function Step2Ingredients() {
 				+ Add Ingredient
 			</button>
 
-			<div className="flex gap-4 pt-6">
-				<button
-					onClick={() => setStep(1)}
-					className="flex-1 border py-3 rounded-xl"
-				>
-					Back
-				</button>
-				<button
-					type="submit"
-					className="flex-1 bg-cyan-600 text-white py-3 rounded-xl"
-				>
-					Next: Instructions
-				</button>
+			<div className="flex  mt-10 gap-3">
+				<div className="flex gap-3 ml-auto">
+					<Button
+						onClick={() => setStep(1)}
+						variant="outline"
+						className="rounded-md font-bold px-8 mr-auto"
+					>
+						Back
+					</Button>
+					<Button
+						type="submit"
+						className="bg-cyan-600 text-white rounded-md font-bold px-8 ml-auto"
+					>
+						Next
+					</Button>
+				</div>
 			</div>
 		</form>
 	);

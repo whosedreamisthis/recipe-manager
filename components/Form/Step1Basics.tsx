@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { recipeSchema } from '@/lib/schemas'; // Your schema from earlier
 import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
+import { Button } from '../ui/button';
 
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
@@ -80,12 +81,14 @@ export default function Step1Basics() {
 				/>
 			</div>
 
-			<button
-				type="submit"
-				className="w-full bg-cyan-600 text-white py-3 rounded-xl font-bold"
-			>
-				Next: Ingredients
-			</button>
+			<div className="flex  mt-10">
+				<Button
+					type="submit"
+					className="bg-cyan-600 text-white rounded-md font-bold px-8 ml-auto"
+				>
+					Next
+				</Button>
+			</div>
 		</form>
 	);
 }

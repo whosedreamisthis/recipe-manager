@@ -108,21 +108,22 @@ export default function Step3Instructions() {
 				Add Next Step
 			</Button>
 
-			<div className="flex gap-4 pt-10 border-t">
-				<Button
-					type="button"
-					variant="secondary"
-					className="flex-1 py-6"
-					onClick={() => setStep(2)}
-				>
-					Back to Ingredients
-				</Button>
-				<Button
-					type="submit"
-					className="flex-1 py-6 bg-slate-900 hover:bg-black text-white"
-				>
-					Finish & Create Recipe
-				</Button>
+			<div className="flex  mt-10 gap-3">
+				<div className="flex gap-3 ml-auto">
+					<Button
+						onClick={() => setStep(2)}
+						variant="outline"
+						className="rounded-md font-bold px-8 mr-auto"
+					>
+						Back
+					</Button>
+					<Button
+						type="submit"
+						className="hover:bg-cyan-600 text-white rounded-md font-bold px-8 ml-auto"
+					>
+						Finish & Create Recipe
+					</Button>
+				</div>
 			</div>
 		</form>
 	);
