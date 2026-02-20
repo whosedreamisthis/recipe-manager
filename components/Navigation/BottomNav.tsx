@@ -28,22 +28,21 @@ export default function BottomNav() {
 					}
 				/>
 			</Link>
-
-			<Link href="/groceries/">
-				<ScrollText
-					onClick={() => setActiveTab('groceries')}
-					className={
-						activeTab === 'groceries'
-							? 'text-cyan-500'
-							: 'text-slate-400'
-					}
-				/>
-			</Link>
 			<Link href="/recent/">
 				<Clock
 					onClick={() => setActiveTab('recent')}
 					className={
 						activeTab === 'recent'
+							? 'text-cyan-500'
+							: 'text-slate-400'
+					}
+				/>
+			</Link>
+			<Link href="/groceries/">
+				<ScrollText
+					onClick={() => setActiveTab('groceries')}
+					className={
+						activeTab === 'groceries'
 							? 'text-cyan-500'
 							: 'text-slate-400'
 					}
