@@ -3,9 +3,10 @@ import { Roboto } from 'next/font/google';
 
 import './globals.css';
 import TopNav from '@/components/Navigation/TopNav';
-import Sidebar from '@/components/Navigation/Sidebar';
 import BottomNav from '@/components/Navigation/BottomNav';
 import Providers from '@/components/Providers';
+import { Toaster } from '@/components/ui/sonner';
+
 const roboto = Roboto({
 	subsets: ['latin'],
 	display: 'swap',
@@ -31,6 +32,7 @@ export default function RootLayout({
 					<TopNav />
 					<main className="flex-1 overflow-y-auto no-scrollbar relative">
 						<div className="max-w-2xl mx-auto p-4">{children}</div>
+						<Toaster position="bottom-right" richColors />
 					</main>
 					<BottomNav />
 				</Providers>

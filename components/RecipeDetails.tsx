@@ -6,12 +6,17 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useShoppingListStore } from '@/stores/useShoppingListStore';
+import { toast } from 'sonner';
+import { useUIStore } from '@/stores/useUIStore';
+import { useRouter } from 'next/navigation';
 
 interface Props {
 	recipe: Recipe;
 }
 export default function RecipeDetails({ recipe }: Props) {
 	const addRecent = useRecentStore((state) => state.addRecent);
+	const setActiveTab = useUIStore((state) => state.setActiveTab);
+	const router = useRouter();
 	const addToShoppingList = useShoppingListStore(
 		(state) => state.addToShoppingList,
 	);
@@ -24,6 +29,21 @@ export default function RecipeDetails({ recipe }: Props) {
 
 	const addIngredientsToShoppingList = () => {
 		addToShoppingList(recipe.ingredients);
+		toast.success('List Updated', {
+			description: `Added ${recipe.ingredients.length} ingredients from ${recipe.title}.`,
+			action: {
+				label: 'View List',
+				onClick: () => {
+					// Logic to switch to shopping tab
+					router.push('/shopping-list');
+				},
+			},
+			actionButtonStyle: {
+				background: 'rgba(255, 255, 255, 0.2)', // Subtle light overlay
+				border: '1px solid rgba(255, 255, 255, 0.4)',
+				color: 'white',
+			},
+		});
 	};
 
 	return (
