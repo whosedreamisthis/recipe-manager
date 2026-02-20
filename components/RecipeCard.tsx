@@ -6,8 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
-
-// TanStack & Actions
+import { toast } from 'sonner';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
 	toggleSaveAction,
@@ -35,7 +34,36 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 
 	const { mutate: toggleSave } = useMutation({
 		mutationFn: () => toggleSaveAction(recipe.id),
-		onSuccess: () => {
+		onMutate: () => {
+			queryClient.cancelQueries({ queryKey: ['recipes', 'saved-ids'] });
+			const previousSavedIds = queryClient.getQueryData([
+				'recipes',
+				'saved-ids',
+			]);
+
+			queryClient.setQueryData(
+				['recipes', 'saved-ids'],
+				(old: string[] | undefined) => {
+					const current = old || [];
+					return current.includes(recipe.id)
+						? current.filter((id) => id !== recipe.id) // Remove if exists
+						: [...current, recipe.id]; // Add if not exists
+				},
+			);
+
+			return { previousSavedIds };
+		},
+		onError: (err, variables, context) => {
+			if (context?.previousSavedIds) {
+				queryClient.setQueryData(
+					['recipes', 'saved-ids'],
+					context.previousSavedIds,
+				);
+			}
+
+			toast.error('Failed to save recipe');
+		},
+		onSettled: () => {
 			// Invalidate both the ID list and the full objects list for the Saved Tab
 			queryClient.invalidateQueries({
 				queryKey: ['recipes', 'saved-ids'],
@@ -48,7 +76,34 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 
 	const { mutate: toggleLike } = useMutation({
 		mutationFn: () => toggleLikeAction(recipe.id),
-		onSuccess: () => {
+		onMutate: () => {
+			queryClient.cancelQueries({ queryKey: ['recipes', 'liked-ids'] });
+			const previousLikedIds = queryClient.getQueryData([
+				'recipes',
+				'liked-ids',
+			]);
+			queryClient.setQueryData(
+				['recipes', 'liked-ids'],
+				(old: string[] | undefined) => {
+					const current = old ?? [];
+					return current.includes(recipe.id)
+						? current.filter((id) => id !== recipe.id) // Remove if exists
+						: [...current, recipe.id];
+				},
+			);
+
+			return { previousLikedIds };
+		},
+		onError: (err, variabels, context) => {
+			if (context?.previousLikedIds) {
+				queryClient.setQueryData(
+					['recipes', 'liked-ids'],
+					context.previousLikedIds,
+				);
+			}
+			toast.error('Failed to like recipe');
+		},
+		onSettled: () => {
 			// 4. Invalidate the liked IDs list so the ThumbsUp changes color
 			queryClient.invalidateQueries({
 				queryKey: ['recipes', 'liked-ids'],
