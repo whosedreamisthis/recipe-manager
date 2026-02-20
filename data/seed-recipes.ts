@@ -1,4 +1,4 @@
-export const SEED_RECIPES = [
+export const MANUAL_RECIPES = [
 	{
 		id: 'miso-ramen-001',
 		title: 'Midnight Miso Ramen',
@@ -278,7 +278,104 @@ export const SEED_RECIPES = [
 		],
 	},
 ];
+const TITLES = [
+	'Spicy',
+	'Roasted',
+	'Creamy',
+	'Zesty',
+	'Honey',
+	'Garlic',
+	'Tuscan',
+	'Asian',
+	'Midnight',
+	'Harvest',
+];
+const PROTEINS = [
+	'Chicken',
+	'Salmon',
+	'Tofu',
+	'Beef',
+	'Shrimp',
+	'Halloumi',
+	'Chickpea',
+	'Lentil',
+	'Pork',
+	'Cod',
+];
+const BASES = [
+	'Bowl',
+	'Pasta',
+	'Tacos',
+	'Salad',
+	'Stir-fry',
+	'Curry',
+	'Toast',
+	'Soup',
+	'Ramen',
+	'Risotto',
+];
 
+const VERIFIED_FOOD_IDS = [
+	'1546069901-ba9599a7e63c', // Fresh Salad
+	'1567306226416-28f0efdc88ce', // Spaghetti
+	'1512621776951-a57141f2eefd', // Buddha Bowl
+	// '1565299624-897095c42f7f', // Pizza
+	'1565958011703-44f9829ba187', // Dessert/Cheesecake
+	'1484723091739-30a097e8f929', // Avocado Toast
+	// '1476224203421-9ac3993557a7', // Mixed Plate
+	'1493770348161-369560ae357d', // Pancakes
+	'1467003909585-2f8a72700288', // Salmon
+	'1540189549336-e6e99c3679fe', // Veggie Salad
+	'1555939594-58d7cb561ad1', // Grilled Meat
+	// '1567620905732-2d1ec7bb7445', // Chicken Wings
+];
+
+// Inside your generateMoreRecipes .map function:
+
+const generateMoreRecipes = (count: number) => {
+	return Array.from({ length: count }).map((_, i) => {
+		const photoId = VERIFIED_FOOD_IDS[i % VERIFIED_FOOD_IDS.length];
+		const title = `${TITLES[i % TITLES.length]} ${
+			PROTEINS[i % PROTEINS.length]
+		} ${BASES[i % BASES.length]}`;
+		const id = `recipe-gen-${i + 11}`; // Starting after your manual 10
+
+		return {
+			id,
+			title,
+			description: `A delicious and flavorful ${title.toLowerCase()} prepared with fresh ingredients and signature spices.`,
+			author: 'Community Chef',
+			likes: Math.floor(Math.random() * 5000),
+			prepTime: [5, 10, 15, 20][i % 4],
+			cookTime: [10, 15, 20, 30, 45][i % 5],
+			categories: ['Dinner', 'Quick', 'Healthy'],
+			// Replace your current image line with this:
+			image: `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&q=80&w=800`,
+			ingredients: [
+				{
+					name: PROTEINS[i % PROTEINS.length],
+					quantity: 1,
+					unit: 'lb',
+				},
+				{ name: 'Olive Oil', quantity: 2, unit: 'tbsp' },
+				{ name: 'Salt & Pepper', quantity: 1, unit: 'pinch' },
+				{ name: 'Special Sauce', quantity: 3, unit: 'tbsp' },
+			],
+			instructions: [
+				'Prepare all fresh ingredients and preheat your cooking surface.',
+				'Combine spices and protein in a medium mixing bowl.',
+				'Cook over medium-high heat until golden brown and fragrant.',
+				'Garnish with fresh herbs and serve immediately while warm.',
+			],
+		};
+	});
+};
+
+// Combine your 10 manual recipes with 90 generated ones
+export const SEED_RECIPES = [
+	...MANUAL_RECIPES, // Put your current list here
+	...generateMoreRecipes(90),
+];
 export const RECIPE_CATEGORIES = [
 	// Course
 	'Breakfast',
