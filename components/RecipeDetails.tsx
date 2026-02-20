@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
 import Image from 'next/image';
@@ -9,7 +9,13 @@ interface Props {
 }
 export default function RecipeDetails({ recipe }: Props) {
 	const addRecent = useRecentStore((state) => state.addRecent);
-	addRecent(recipe);
+	useEffect(() => {
+		// 🛡️ Move the call inside useEffect to avoid the "update while rendering" error
+		if (recipe) {
+			addRecent(recipe);
+		}
+	}, [recipe, addRecent]);
+
 	return (
 		<div>
 			<div className="relative h-44 w-full overflow-hidden">
