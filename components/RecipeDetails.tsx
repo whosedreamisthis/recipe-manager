@@ -3,18 +3,28 @@ import React, { useEffect } from 'react';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
 import Image from 'next/image';
+import { Button } from './ui/button';
+import { PlusCircle } from 'lucide-react';
+import { useShoppingListStore } from '@/stores/useShoppingListStore';
 
 interface Props {
 	recipe: Recipe;
 }
 export default function RecipeDetails({ recipe }: Props) {
 	const addRecent = useRecentStore((state) => state.addRecent);
+	const addToShoppingList = useShoppingListStore(
+		(state) => state.addToShoppingList,
+	);
 	useEffect(() => {
 		// 🛡️ Move the call inside useEffect to avoid the "update while rendering" error
 		if (recipe) {
 			addRecent(recipe);
 		}
 	}, [recipe, addRecent]);
+
+	const addIngredientsToShoppingList = () => {
+		addToShoppingList(recipe.ingredients);
+	};
 
 	return (
 		<div>
@@ -30,13 +40,24 @@ export default function RecipeDetails({ recipe }: Props) {
 			<h1 className="font-bold mt-5 mb-2 text-3xl">{recipe.title}</h1>
 			<p>{recipe.description}</p>
 			<div className="border-b mt-4 border-1 border-black"></div>
-			<h2 className="uppercase text-lg underline my-2 text-center">
-				Ingredients
-			</h2>
+			<div className="relative">
+				<h2 className="uppercase text-lg underline my-2 text-center">
+					Ingredients
+				</h2>
+				<Button
+					size="sm"
+					onClick={addIngredientsToShoppingList}
+					className="flex gap-2 absolute top-0 right-0 hover:bg-gray-700 active:bg-gray-400"
+				>
+					<PlusCircle className="w-4 h-4" />
+					<span>Add All</span>
+				</Button>
+			</div>
+
 			<ul className="m-auto w-[40%]">
-				<li>
+				{/* <li>
 					<div></div>
-				</li>
+				</li> */}
 				{recipe.ingredients.map((ingredient, index) => (
 					<div key={index} className="flex justify-between">
 						<p>{ingredient.name}</p>

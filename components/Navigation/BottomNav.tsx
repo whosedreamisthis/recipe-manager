@@ -23,17 +23,17 @@ export default function BottomNav() {
 					onClick={() => setActiveTab('saved')}
 					className={
 						activeTab === 'saved'
-							? 'fill-gray-700'
+							? 'fill-cyan-500 text-cyan-500'
 							: 'text-slate-400'
 					}
 				/>
 			</Link>
 
-			<Link href="/recent/">
+			<Link href="/groceries/">
 				<ScrollText
-					onClick={() => setActiveTab('recent')}
+					onClick={() => setActiveTab('groceries')}
 					className={
-						activeTab === 'recent'
+						activeTab === 'groceries'
 							? 'text-cyan-500'
 							: 'text-slate-400'
 					}
