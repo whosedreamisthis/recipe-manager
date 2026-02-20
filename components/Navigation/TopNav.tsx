@@ -1,13 +1,15 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link'; // Import Link
 import { useUIStore } from '@/stores/useUIStore'; // Import UI Store
+import { useEffect } from 'react';
 
 export default function TopNav() {
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const router = useRouter();
 	const setActiveTab = useUIStore((state) => state.setActiveTab);
 
@@ -17,6 +19,33 @@ export default function TopNav() {
 	const handleLogoClick = () => {
 		setActiveTab('search'); // Reset to search tab when returning home
 	};
+
+	useEffect(() => {
+		// A. HANDLE BROWSER BACK/FORWARD (Popstate)
+		const handlePopState = () => {
+			if (pathname === '/' || pathname === '/recipes') {
+				const tabFromUrl = new URLSearchParams(
+					window.location.search,
+				).get('tab');
+				// Update store to match URL, but don't push a new history entry (prevents infinite loops)
+				setActiveTab(tabFromUrl || 'search', false);
+			}
+		};
+
+		window.addEventListener('popstate', handlePopState);
+
+		// B. HANDLE PAGE LOAD / NAVIGATION CHANGE
+		// If we navigate to /recent or /shopping-list, update the store state
+		if (pathname === '/recent') setActiveTab('recent', false);
+		else if (pathname === '/shopping-list')
+			setActiveTab('shopping-list', false);
+		else if (pathname === '/' || pathname === '/recipes') {
+			const tabFromUrl = searchParams.get('tab');
+			setActiveTab(tabFromUrl || 'search', false);
+		}
+
+		return () => window.removeEventListener('popstate', handlePopState);
+	}, [pathname, searchParams, setActiveTab]);
 
 	return (
 		<header className="h-10 border-b border-slate-800 flex items-center px-4 backdrop-blur-md z-50">
