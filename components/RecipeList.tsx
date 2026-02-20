@@ -8,8 +8,12 @@ import { useSavedRecipes } from '@/hooks/useSavedRecipes'; // Import new hook
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useUIStore } from '@/stores/useUIStore';
+import { SignInButton, SignUpButton, useUser } from '@clerk/nextjs';
+import { Button } from './ui/button';
+import { Lock } from 'lucide-react';
 
 export default function RecipeList() {
+	const { isSignedIn, isLoaded } = useUser();
 	// 1. Fetch Main Feed
 	const {
 		data: dbData,
@@ -49,6 +53,37 @@ export default function RecipeList() {
 			return matchesQuery && matchesCategory;
 		});
 	}, [activeTab, dbData, savedData, query, selectedCategory]);
+
+	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+				<div className="bg-white p-4 rounded-full shadow-sm mb-4">
+					<Lock className="w-8 h-8 text-cyan-600" />
+				</div>
+				<h3 className="text-xl font-bold text-slate-900">
+					Your Personal Vault
+				</h3>
+				<p className="text-slate-500 max-w-sm text-center mb-8">
+					Sign up to start saving your favorite recipes and access
+					them anywhere.
+				</p>
+
+				<div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+					<SignUpButton mode="modal">
+						<Button className="bg-cyan-600 hover:bg-cyan-700 flex-1">
+							Sign Up
+						</Button>
+					</SignUpButton>
+
+					<SignInButton mode="modal">
+						<Button variant="outline" className="flex-1">
+							Log In
+						</Button>
+					</SignInButton>
+				</div>
+			</div>
+		);
+	}
 
 	if (isLoading) {
 		return (
