@@ -4,6 +4,7 @@ import { recipeSchema } from '@/lib/schemas'; // Your schema from earlier
 import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
@@ -37,9 +38,9 @@ export default function Step1Basics() {
 				<label className="block text-sm font-medium mb-1">
 					Recipe Title
 				</label>
-				<input
+				<Input
 					{...register('title')}
-					className="w-full p-2 border rounded-md"
+					className="w-full p-2 border rounded-sm"
 				/>
 				{errors.title && (
 					<p className="text-red-500 text-xs">
@@ -53,20 +54,20 @@ export default function Step1Basics() {
 					<label className="block text-sm font-medium mb-1">
 						Prep Time (mins)
 					</label>
-					<input
+					<Input
 						type="number"
 						{...register('prepTime', { valueAsNumber: true })}
-						className="w-full p-2 border rounded-md"
+						className="w-full p-2 border rounded-sm"
 					/>
 				</div>
 				<div>
 					<label className="block text-sm font-medium mb-1">
 						Cook Time (mins)
 					</label>
-					<input
+					<Input
 						type="number"
 						{...register('cookTime', { valueAsNumber: true })}
-						className="w-full p-2 border rounded-md"
+						className="w-full p-2 border rounded-sm"
 					/>
 				</div>
 			</div>

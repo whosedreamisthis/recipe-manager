@@ -37,7 +37,7 @@ export default function ShoppingList() {
 					shoppingList.map((ingredient, index) => (
 						<div
 							key={index}
-							className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm hover:border-cyan-200 transition-colors"
+							className="flex items-center justify-between p-3 bg-white border rounded-md shadow-sm hover:border-cyan-200 transition-colors"
 						>
 							<div className="flex flex-col">
 								<span className="font-medium text-slate-900">
