@@ -34,54 +34,55 @@ export default function Step1Basics() {
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-			<div>
-				<label className="block text-sm font-medium mb-1">
-					Recipe Title
-				</label>
-				<Input
-					{...register('title')}
-					className="w-full p-2 border rounded-sm"
-				/>
-				{errors.title && (
-					<p className="text-red-500 text-xs">
-						{errors.title.message as string}
-					</p>
-				)}
-			</div>
-
-			<div className="grid grid-cols-2 gap-4">
+			<div className="flex flex-col gap-5">
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						Prep Time (mins)
+						Recipe Title
 					</label>
 					<Input
-						type="number"
-						{...register('prepTime', { valueAsNumber: true })}
+						{...register('title')}
 						className="w-full p-2 border rounded-sm"
 					/>
+					{errors.title && (
+						<p className="text-red-500 text-xs">
+							{errors.title.message as string}
+						</p>
+					)}
 				</div>
+
+				<div className="grid grid-cols-2 gap-4">
+					<div>
+						<label className="block text-sm font-medium mb-1">
+							Prep Time (mins)
+						</label>
+						<Input
+							type="number"
+							{...register('prepTime', { valueAsNumber: true })}
+							className="w-full p-2 border rounded-sm"
+						/>
+					</div>
+					<div>
+						<label className="block text-sm font-medium mb-1">
+							Cook Time (mins)
+						</label>
+						<Input
+							type="number"
+							{...register('cookTime', { valueAsNumber: true })}
+							className="w-full p-2 border rounded-sm"
+						/>
+					</div>
+				</div>
+
 				<div>
-					<label className="block text-sm font-medium mb-1">
-						Cook Time (mins)
+					<label className="block text-sm font-medium">
+						Categories
 					</label>
-					<Input
-						type="number"
-						{...register('cookTime', { valueAsNumber: true })}
-						className="w-full p-2 border rounded-sm"
+					<CategorySelect
+						selected={formData.categories || []}
+						onChange={(val) => updateFormData({ categories: val })}
 					/>
 				</div>
 			</div>
-
-			<div>
-				<label className="block text-sm font-medium mb-2">
-					Categories
-				</label>
-				<CategorySelect
-					selected={formData.categories || []}
-					onChange={(val) => updateFormData({ categories: val })}
-				/>
-			</div>
-
 			<div className="flex  mt-10">
 				<Button
 					type="submit"
