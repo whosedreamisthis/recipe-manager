@@ -2,7 +2,7 @@
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useUIStore } from '@/stores/useUIStore';
-import { Clock, Bookmark, ScrollText, Search } from 'lucide-react';
+import { Clock, Bookmark, ScrollText, Search, Plus } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -74,6 +74,20 @@ export default function BottomNav() {
 				<ScrollText
 					className={`w-6 h-6 transition-colors ${
 						activeTab === 'shopping-list'
+							? 'text-cyan-500'
+							: 'text-slate-400'
+					}`}
+				/>
+			</Link>
+
+			<Link
+				href="/create"
+				onClick={() => handleTabChange('create')}
+				className="flex flex-col items-center gap-1"
+			>
+				<Plus
+					className={`w-6 h-6 transition-colors ${
+						activeTab === 'create'
 							? 'text-cyan-500'
 							: 'text-slate-400'
 					}`}
