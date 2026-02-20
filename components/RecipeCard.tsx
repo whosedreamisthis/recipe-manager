@@ -1,21 +1,62 @@
 'use client';
 import React from 'react';
-import { useSavedStore } from '@/stores/useSavedStore';
 import { Bookmark, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
-import { useLikedStore } from '@/stores/useLikedStore';
+
+// TanStack & Actions
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import {
+	toggleSaveAction,
+	toggleLikeAction,
+	getSavedIds,
+	getLikedIds, // 1. Import the liked IDs fetcher
+} from '@/app/actions';
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
-	const toggleSaved = useSavedStore((state) => state.toggleSaved);
-	const savedRecipes = useSavedStore((state) => state.savedRecipes);
-	const liked = useLikedStore((state) => state.liked);
-	const toggleLiked = useLikedStore((state) => state.toggleLiked);
-	const isSaved = savedRecipes?.some((r) => r.id === recipe.id) ?? false;
-	const isLiked = liked.includes(recipe.id);
+	const queryClient = useQueryClient();
+
+	// 2. Fetch Global "Saved" state
+	const { data: savedIds = [] } = useQuery({
+		queryKey: ['recipes', 'saved-ids'],
+		queryFn: () => getSavedIds(),
+	});
+	const isSaved = savedIds.includes(recipe.id);
+
+	// 3. Fetch Global "Liked" state (Fixes the hardcoded false)
+	const { data: likedIds = [] } = useQuery({
+		queryKey: ['recipes', 'liked-ids'],
+		queryFn: () => getLikedIds(),
+	});
+	const isLiked = likedIds.includes(recipe.id);
+
+	const { mutate: toggleSave } = useMutation({
+		mutationFn: () => toggleSaveAction(recipe.id),
+		onSuccess: () => {
+			// Invalidate both the ID list and the full objects list for the Saved Tab
+			queryClient.invalidateQueries({
+				queryKey: ['recipes', 'saved-ids'],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ['recipes', 'saved-list'],
+			});
+		},
+	});
+
+	const { mutate: toggleLike } = useMutation({
+		mutationFn: () => toggleLikeAction(recipe.id),
+		onSuccess: () => {
+			// 4. Invalidate the liked IDs list so the ThumbsUp changes color
+			queryClient.invalidateQueries({
+				queryKey: ['recipes', 'liked-ids'],
+			});
+			// Also invalidate main recipes to update the "count" number
+			queryClient.invalidateQueries({ queryKey: ['recipes'] });
+		},
+	});
 
 	return (
 		<div className="relative group">
@@ -32,22 +73,20 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 					</div>
 
 					<CardHeader className="px-4 pt-4 pb-3">
-						<CardTitle className="group-hover:text-cyan-600 transition-colors mb-1 text-lg">
+						<CardTitle className="group-hover:text-cyan-600 transition-colors mb-1 text-lg line-clamp-1">
 							{recipe.title}
 						</CardTitle>
 
 						<CardDescription className="flex flex-col gap-1">
-							{/* Line 1: Time */}
 							<span className="text-xs text-slate-500">
 								Ready in {recipe.prepTime + recipe.cookTime}{' '}
 								minutes
 							</span>
 
-							{/* Line 2: The Like Placeholder */}
 							<div className="flex items-center gap-1 h-6 mt-1">
-								{/* Ghost spacer to move the number to the right of the absolute icon */}
 								<div className="w-6" />
 								<span className="text-sm font-semibold text-slate-700">
+									{/* Shows actual count + 1 if liked locally */}
 									{isLiked ? recipe.likes + 1 : recipe.likes}
 								</span>
 							</div>
@@ -56,8 +95,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 				</Card>
 			</Link>
 
-			{/* 2. THE ABSOLUTE LIKE BUTTON */}
-			{/* Positioned exactly over the placeholder in the second line of the description */}
+			{/* LIKE BUTTON */}
 			<div className="absolute bottom-[10px] left-[13px] z-20">
 				<Button
 					size="icon"
@@ -66,7 +104,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						toggleLiked(recipe.id);
+						toggleLike();
 					}}
 				>
 					<ThumbsUp
@@ -79,7 +117,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 				</Button>
 			</div>
 
-			{/* 3. BOOKMARK BUTTON */}
+			{/* BOOKMARK BUTTON */}
 			<div className="absolute top-3 right-3 z-10">
 				<Button
 					size="icon"
@@ -88,12 +126,14 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						toggleSaved(recipe);
+						toggleSave();
 					}}
 				>
 					<Bookmark
-						className={`w-5 h-5 ${
-							isSaved ? 'fill-gray-700' : 'text-slate-400'
+						className={`w-5 h-5 transition-colors ${
+							isSaved
+								? 'fill-cyan-500 text-cyan-500'
+								: 'text-slate-400'
 						}`}
 					/>
 				</Button>

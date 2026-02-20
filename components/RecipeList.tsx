@@ -1,130 +1,85 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { fetchRecipes } from '@/app/actions';
+import { useMemo } from 'react';
 import { Recipe } from '@/lib/types';
 import RecipeCard from './RecipeCard';
-
-// Stores
+import { useRecipes } from '@/hooks/useRecipes';
+import { useSavedRecipes } from '@/hooks/useSavedRecipes'; // Import new hook
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
-import { useSavedStore } from '@/stores/useSavedStore';
-import { useRecentStore } from '@/stores/useRecentStore';
 import { useUIStore } from '@/stores/useUIStore';
 
-interface RecipeListProps {
-	initialRecipes: Recipe[];
-	initialHasMore: boolean;
-}
+export default function RecipeList() {
+	// 1. Fetch Main Feed
+	const {
+		data: dbData,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useRecipes();
 
-export default function RecipeList({
-	initialRecipes,
-	initialHasMore,
-}: RecipeListProps) {
-	// 1. Pagination State (Remote Data)
-	const [dbRecipes, setDbRecipes] = useState(initialRecipes ?? []);
-	const [page, setPage] = useState(1);
-	const [loading, setLoading] = useState(false);
-	const [hasMore, setHasMore] = useState(initialHasMore); // Fixed: Properly initialized state
+	// 2. Fetch Saved Feed
+	const { data: savedData, isLoading: isLoadingSaved } = useSavedRecipes();
 
-	// 2. Store State
 	const query = useSearchStore((state) => state.query);
 	const selectedCategory = useCategoryStore(
 		(state) => state.selectedCategory,
 	);
 	const activeTab = useUIStore((state) => state.activeTab);
-	const savedRecipes = useSavedStore((state) => state.savedRecipes);
-	const recentRecipes = useRecentStore((state) => state.recentRecipes);
 
-	// 3. Centralized Data Switching & Filtering Logic
+	// 3. Centralized Data Switching
 	const displayRecipes = useMemo(() => {
 		let baseSet: Recipe[] = [];
 
-		// Switch the "Source of Truth" based on the active tab
 		if (activeTab === 'saved') {
-			baseSet = savedRecipes ?? [];
-		} else if (activeTab === 'recent') {
-			baseSet = recentRecipes ?? [];
-		} else {
-			baseSet = dbRecipes ?? [];
+			baseSet = savedData ?? [];
+		} else if (activeTab === 'search') {
+			baseSet = dbData?.pages.flatMap((page) => page.recipes) ?? [];
 		}
+		// Note: You can add 'recent' logic here similarly once moved to DB
 
-		// Apply global search and category filters to the active set
 		return baseSet.filter((recipe) => {
-			if (!recipe) return false;
-
-			const matchesQuery = (recipe.title ?? '')
+			const matchesQuery = recipe.title
 				.toLowerCase()
-				.includes((query ?? '').toLowerCase());
-
+				.includes(query.toLowerCase());
 			const matchesCategory =
 				selectedCategory === '' ||
-				(recipe.categories?.includes(selectedCategory) ?? false);
-
+				recipe.categories?.includes(selectedCategory);
 			return matchesQuery && matchesCategory;
 		});
-	}, [
-		activeTab,
-		dbRecipes,
-		savedRecipes,
-		recentRecipes,
-		query,
-		selectedCategory,
-	]);
-
-	// 4. Load More Functionality
-	const loadMore = async () => {
-		setLoading(true);
-		try {
-			const nextPage = page + 1;
-			const { recipes: newRecipes, hasMore: more } = await fetchRecipes(
-				nextPage,
-			);
-
-			setDbRecipes((prev) => [...prev, ...newRecipes]);
-			setPage(nextPage);
-			setHasMore(more);
-		} catch (error) {
-			console.error('Failed to fetch more recipes:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
+	}, [activeTab, dbData, savedData, query, selectedCategory]);
 
 	return (
-		<div className="space-y-8">
-			{/* Unified Grid View */}
+		<div className="space-y-8 pb-20">
 			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
 				{displayRecipes.map((recipe) => (
 					<RecipeCard key={recipe.id} recipe={recipe} />
 				))}
 			</div>
 
-			{/* Empty State UI */}
-			{displayRecipes.length === 0 && !loading && (
+			{/* Empty State */}
+			{displayRecipes.length === 0 && (
 				<div className="text-center py-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
 					<p className="text-slate-500">
-						No recipes found in your {activeTab} view.
+						{activeTab === 'saved'
+							? "You haven't vaulted any recipes yet."
+							: 'No recipes found.'}
 					</p>
 				</div>
 			)}
 
-			{/* Pagination: Only visible on 'search' tab when not actively filtering */}
-			{activeTab === 'search' &&
-				hasMore &&
-				query === '' &&
-				selectedCategory === '' && (
-					<div className="flex justify-center pt-4">
-						<button
-							onClick={loadMore}
-							disabled={loading}
-							className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold 
-                         hover:bg-cyan-600 transition-all disabled:bg-slate-300"
-						>
-							{loading ? 'Loading...' : 'Show More Recipes'}
-						</button>
-					</div>
-				)}
+			{/* Pagination (Only for Search) */}
+			{activeTab === 'search' && hasNextPage && (
+				<div className="flex justify-center pt-4">
+					<button
+						onClick={() => fetchNextPage()}
+						disabled={isFetchingNextPage}
+						className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all disabled:bg-slate-300"
+					>
+						{isFetchingNextPage ? 'Syncing...' : 'Load More'}
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }
