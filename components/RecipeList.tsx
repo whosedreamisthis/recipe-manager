@@ -16,6 +16,7 @@ export default function RecipeList() {
 		fetchNextPage,
 		hasNextPage,
 		isFetchingNextPage,
+		isLoading: isLoadingSearch,
 	} = useRecipes();
 
 	// 2. Fetch Saved Feed
@@ -26,7 +27,7 @@ export default function RecipeList() {
 		(state) => state.selectedCategory,
 	);
 	const activeTab = useUIStore((state) => state.activeTab);
-
+	const isLoading = activeTab === 'saved' ? isLoadingSaved : isLoadingSearch;
 	// 3. Centralized Data Switching
 	const displayRecipes = useMemo(() => {
 		let baseSet: Recipe[] = [];
@@ -48,6 +49,19 @@ export default function RecipeList() {
 			return matchesQuery && matchesCategory;
 		});
 	}, [activeTab, dbData, savedData, query, selectedCategory]);
+
+	if (isLoading) {
+		return (
+			<div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+				{[1, 2, 3, 4, 5, 6].map((i) => (
+					<div
+						key={i}
+						className="h-64 bg-slate-100 animate-pulse rounded-xl"
+					/>
+				))}
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-8 pb-20">
