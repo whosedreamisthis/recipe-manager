@@ -3,6 +3,7 @@ import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Step3Instructions() {
 	const {
@@ -30,7 +31,7 @@ export default function Step3Instructions() {
 
 		// Final Submission Logic
 		console.log('Final Recipe Data:', { ...formData, ...data });
-		alert('Recipe Created Locally! (Sign in to save to DB)');
+		toast('Recipe Created Locally! (Sign in to save to DB)');
 		// resetForm();
 	};
 

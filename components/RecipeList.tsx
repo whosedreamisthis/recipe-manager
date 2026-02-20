@@ -120,13 +120,27 @@ export default function RecipeList() {
 			{/* Pagination (Only for Search) */}
 			{activeTab === 'search' && hasNextPage && (
 				<div className="flex justify-center pt-4">
-					<button
-						onClick={() => fetchNextPage()}
-						disabled={isFetchingNextPage}
-						className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all disabled:bg-slate-300"
-					>
-						{isFetchingNextPage ? 'Syncing...' : 'Load More'}
-					</button>
+					{/* NEW LOGIC: 
+      1. Hide if user is searching/filtering (Standard UX)
+      2. Ensure we don't show it if the current filtered view is empty
+    */}
+					{query === '' && selectedCategory === '' && (
+						<button
+							onClick={() => fetchNextPage()}
+							disabled={isFetchingNextPage}
+							className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all disabled:bg-slate-300 hover:bg-slate-800 active:scale-95"
+						>
+							{isFetchingNextPage ? 'Syncing...' : 'Load More'}
+						</button>
+					)}
+
+					{/* Optional: Indicator for recruiters that they've seen all filtered results */}
+					{(query !== '' || selectedCategory !== '') &&
+						displayRecipes.length > 0 && (
+							<p className="text-slate-400 text-sm italic">
+								Showing all results for this filter
+							</p>
+						)}
 				</div>
 			)}
 		</div>
