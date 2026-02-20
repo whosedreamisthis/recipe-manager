@@ -128,9 +128,9 @@ export default function Step3Instructions() {
 						</Button>
 						<Button
 							type="submit"
-							className="hover:bg-cyan-600 text-white rounded-md font-bold px-8 ml-auto"
+							className="hover:bg-cyan-600 text-white rounded-md font-bold"
 						>
-							Finish & Create Recipe
+							Create Recipe
 						</Button>
 					</div>
 				</div>
