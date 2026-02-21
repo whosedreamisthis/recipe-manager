@@ -5,7 +5,7 @@ import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-
+import Image from 'next/image';
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
 
@@ -88,43 +88,48 @@ export default function Step1Basics() {
 						onChange={(val) => updateFormData({ categories: val })}
 					/>
 				</div>
-			</div>
-			<div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200">
-				<h3 className="text-lg font-bold text-slate-800">
-					Recipe Cover Image
-				</h3>
+				<div className="flex flex-col gap-3 space-y-4 bg-white p-6 rounded-2xl border border-slate-200">
+					<h3 className="text-lg font-bold text-slate-800">
+						Recipe Cover Image
+					</h3>
 
-				<div className="flex flex-col gap-4">
-					{/* Visual Size Limit: max-h-64 and aspect-video */}
-					<div className="relative w-full max-h-64 aspect-video rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center">
-						{formData.image ? (
-							<img
-								src={formData.image}
-								alt="Preview"
-								className="w-full h-full object-cover"
-								onError={(e) =>
-									(e.currentTarget.src =
-										'/placeholder-recipe.jpg')
-								}
-							/>
-						) : (
-							<div className="text-center text-slate-400">
-								<p className="text-sm">Image Preview Area</p>
-							</div>
-						)}
+					<div className="flex flex-col gap-4">
+						{/* Visual Size Limit: max-h-64 and aspect-video */}
+						<div className="relative w-full h-64 aspect-video rounded-sm bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center">
+							{formData.image ? (
+								<Image
+									src={formData.image}
+									fill
+									alt="Preview"
+									className="object-cover"
+									sizes="(max-width: 768px) 100vw, 50vw"
+									onError={(e) =>
+										(e.currentTarget.src =
+											'/placeholder-recipe.jpg')
+									}
+								/>
+							) : (
+								<div className="text-center text-slate-400">
+									<p className="text-sm">
+										Image Preview Area
+									</p>
+								</div>
+							)}
+						</div>
+
+						<input
+							type="text"
+							placeholder="Paste Image URL here..."
+							className="w-full p-3 rounded-xl border border-slate-200"
+							value={formData.image || ''}
+							onChange={(e) =>
+								updateFormData({ image: e.target.value })
+							}
+						/>
 					</div>
-
-					<input
-						type="text"
-						placeholder="Paste Image URL here..."
-						className="w-full p-3 rounded-xl border border-slate-200"
-						value={formData.image || ''}
-						onChange={(e) =>
-							updateFormData({ image: e.target.value })
-						}
-					/>
 				</div>
 			</div>
+
 			<div className="flex  mt-10">
 				<Button
 					type="submit"
