@@ -4,20 +4,38 @@ import { SEED_RECIPES } from '@/data/seed-recipes';
 import { Recipe } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
-// --- 🗄️ MOCK DATABASE STATE ---
-// These live in the server's memory.
-// Note: These will reset if the dev server restarts.
-let db = [...SEED_RECIPES];
-const MOCK_SAVED_IDS = new Set<string>();
-const MOCK_LIKED_IDS = new Set<string>();
+// --- 🗄️ PERSISTENT MOCK DATABASE STATE ---
+type GlobalDatabase = {
+	db: Recipe[];
+	savedIds: Set<string>;
+	likedIds: Set<string>;
+};
+
+const globalForDb = (global as unknown) as GlobalDatabase;
+
+/**
+ * Internal helper to initialize the global store.
+ * Marked async to satisfy 'use server' requirements for exported helpers.
+ */
+export const getDb = async () => {
+	if (!globalForDb.db) {
+		globalForDb.db = [...SEED_RECIPES];
+	}
+	if (!globalForDb.savedIds) globalForDb.savedIds = new Set<string>();
+	if (!globalForDb.likedIds) globalForDb.likedIds = new Set<string>();
+
+	return globalForDb;
+};
 
 // --- 🥗 RECIPE FETCHING ACTIONS ---
 
 /**
- * Main Feed: Fetches paginated recipes from the master list
+ * Main Feed: Fetches paginated recipes from the global master list
  */
 export async function fetchRecipes(page: number = 1, limit: number = 12) {
 	await new Promise((resolve) => setTimeout(resolve, 500));
+
+	const { db } = await getDb(); // Correctly access the global db
 
 	const start = (page - 1) * limit;
 	const end = start + limit;
@@ -33,36 +51,32 @@ export async function fetchRecipes(page: number = 1, limit: number = 12) {
  */
 export const fetchRecipe = async (recipeId: string) => {
 	await new Promise((res) => setTimeout(res, 500));
+	const { db } = await getDb();
+
 	return db.find((recipe) => recipe.id === recipeId);
 };
 
 // --- ❤️ SAVED / VAULT ACTIONS ---
 
-/**
- * Get Saved: Filters the master list based on the saved IDs
- */
 export async function getSavedRecipes(): Promise<Recipe[]> {
 	await new Promise((res) => setTimeout(res, 300));
-	return db.filter((recipe) => MOCK_SAVED_IDS.has(recipe.id));
+	const { db, savedIds } = await getDb();
+	return db.filter((recipe) => savedIds.has(recipe.id));
 }
 
-/**
- * Get Saved IDs: Returns just the IDs (used for heart/bookmark icons)
- */
 export async function getSavedIds(): Promise<string[]> {
-	return Array.from(MOCK_SAVED_IDS);
+	const { savedIds } = await getDb();
+	return Array.from(savedIds);
 }
 
-/**
- * Toggle Save: Adds/Removes ID from the vault
- */
 export async function toggleSaveAction(recipeId: string) {
 	await new Promise((res) => setTimeout(res, 300));
+	const { savedIds } = await getDb();
 
-	if (MOCK_SAVED_IDS.has(recipeId)) {
-		MOCK_SAVED_IDS.delete(recipeId);
+	if (savedIds.has(recipeId)) {
+		savedIds.delete(recipeId);
 	} else {
-		MOCK_SAVED_IDS.add(recipeId);
+		savedIds.add(recipeId);
 	}
 
 	revalidatePath('/');
@@ -71,25 +85,19 @@ export async function toggleSaveAction(recipeId: string) {
 
 // --- 👍 LIKE ACTIONS ---
 
-/**
- * Get Liked IDs: Returns list of IDs the user has liked
- */
 export async function getLikedIds(): Promise<string[]> {
-	return Array.from(MOCK_LIKED_IDS);
+	const { likedIds } = await getDb();
+	return Array.from(likedIds);
 }
 
-/**
- * Toggle Like: Logic for liking a recipe
- */
 export async function toggleLikeAction(recipeId: string) {
 	await new Promise((res) => setTimeout(res, 300));
+	const { likedIds } = await getDb();
 
-	if (MOCK_LIKED_IDS.has(recipeId)) {
-		MOCK_LIKED_IDS.delete(recipeId);
-		// Optional: If your Recipe type has a .likes property,
-		// you would decrement it in 'db' here.
+	if (likedIds.has(recipeId)) {
+		likedIds.delete(recipeId);
 	} else {
-		MOCK_LIKED_IDS.add(recipeId);
+		likedIds.add(recipeId);
 	}
 
 	revalidatePath('/');
@@ -97,20 +105,36 @@ export async function toggleLikeAction(recipeId: string) {
 
 // --- 🛠️ ADMIN / MUTATION ACTIONS ---
 
-export const addRecipe = async (recipe: Recipe) => {
+export const addRecipe = async (recipeData: Omit<Recipe, 'id'>) => {
 	await new Promise((res) => setTimeout(res, 1000));
-	db = [recipe, ...db];
-	return { success: true };
+	const { db } = await getDb();
+
+	const newId = crypto.randomUUID();
+
+	const newRecipe: Recipe = {
+		...recipeData,
+		id: newId,
+		author: recipeData.author || 'Guest',
+		likes: recipeData.likes ?? 0,
+	};
+
+	// Update the global reference array
+	globalForDb.db = [newRecipe, ...db];
+
+	revalidatePath('/');
+	revalidatePath(`/recipes/${newId}`);
+
+	return { success: true, recipeId: newId };
 };
 
 export const deleteRecipe = async (recipeId: string) => {
 	await new Promise((res) => setTimeout(res, 1000));
+	const { savedIds, likedIds } = await getDb();
 
-	db = db.filter((recipe) => recipe.id !== recipeId);
+	globalForDb.db = globalForDb.db.filter((recipe) => recipe.id !== recipeId);
 
-	// Cleanup user interactions for this recipe
-	MOCK_SAVED_IDS.delete(recipeId);
-	MOCK_LIKED_IDS.delete(recipeId);
+	savedIds.delete(recipeId);
+	likedIds.delete(recipeId);
 
 	revalidatePath('/');
 	return { success: true };

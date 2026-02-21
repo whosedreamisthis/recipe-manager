@@ -4,12 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { addRecipe } from '@/app/actions';
+import { Recipe } from '@/lib/types';
 
 interface InstructionForm {
 	instructions: { value: string }[];
 }
 
 export default function Step3Instructions() {
+	const { user } = useUser();
+	const router = useRouter();
+
 	const {
 		formData,
 		setStep,
@@ -31,14 +38,37 @@ export default function Step3Instructions() {
 		name: 'instructions',
 	});
 
-	const onSubmit = (data: InstructionForm) => {
+	const onSubmit = async (data: InstructionForm) => {
 		const instructionsStrings = data.instructions.map((i) => i.value);
-		updateFormData({ instructions: instructionsStrings });
 
-		// Final Submission Logic
-		console.log('Final Recipe Data:', { ...formData, ...data });
-		toast('Recipe Created Locally! (Sign in to save to DB)');
-		// resetForm();
+		// This object fulfills the strict requirements by ensuring no field is undefined
+		const recipeToSave: Omit<Recipe, 'id'> = {
+			title: formData.title || 'Untitled Recipe',
+			description: formData.description || '',
+			// Providing a default string here fixes the 'undefined' error
+			author: 'Guest User' as string,
+			likes: 0,
+			prepTime: Number(formData.prepTime) || 0,
+			cookTime: Number(formData.cookTime) || 0,
+			categories: formData.categories || [],
+			image: formData.image || '/placeholder-recipe.jpg',
+			ingredients: formData.ingredients || [],
+			instructions: instructionsStrings,
+		};
+
+		try {
+			const result = await addRecipe(recipeToSave);
+
+			if (result.success) {
+				toast.success('Recipe Created!');
+				resetForm();
+				// This redirect works because 'addRecipe' returns a valid ID
+				router.push(`/recipes/${result.recipeId}`);
+			}
+		} catch (error) {
+			toast.error('Failed to save recipe');
+			console.error(error);
+		}
 	};
 
 	return (
@@ -128,9 +158,9 @@ export default function Step3Instructions() {
 						</Button>
 						<Button
 							type="submit"
-							className="hover:bg-cyan-600 text-white rounded-md font-bold"
+							className="bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-bold"
 						>
-							Create Recipe
+							{user ? 'Publish Recipe' : 'Save Locally'}
 						</Button>
 					</div>
 				</div>
