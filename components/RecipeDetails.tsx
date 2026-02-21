@@ -57,6 +57,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					sizes="(max-width: 768px) 100vw, 33vw"
 				/>
 			</div>
+			<em className="italics">{recipe.author}</em>
 			<h1 className="font-bold mt-5 mb-2 text-3xl">{recipe.title}</h1>
 			<p>{recipe.description}</p>
 			<div className="border-b mt-4 border-1 border-black"></div>
