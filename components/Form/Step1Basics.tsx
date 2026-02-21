@@ -5,7 +5,6 @@ import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { ImageIcon } from 'lucide-react';
 
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
@@ -90,14 +89,14 @@ export default function Step1Basics() {
 					/>
 				</div>
 			</div>
-			<div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+			<div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200">
 				<h3 className="text-lg font-bold text-slate-800">
 					Recipe Cover Image
 				</h3>
 
 				<div className="flex flex-col gap-4">
-					{/* Image Preview Window */}
-					<div className="relative w-full h-48 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center">
+					{/* Visual Size Limit: max-h-64 and aspect-video */}
+					<div className="relative w-full max-h-64 aspect-video rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center">
 						{formData.image ? (
 							<img
 								src={formData.image}
@@ -110,31 +109,20 @@ export default function Step1Basics() {
 							/>
 						) : (
 							<div className="text-center text-slate-400">
-								<ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-20" />
-								<p className="text-sm">
-									Enter a URL to see a preview
-								</p>
+								<p className="text-sm">Image Preview Area</p>
 							</div>
 						)}
 					</div>
 
-					{/* Input Field */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium text-slate-700">
-							Image URL
-						</label>
-						<input
-							type="text"
-							placeholder="https://images.unsplash.com/photo..."
-							className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-							value={formData.image || ''}
-							onChange={handleImageChange}
-						/>
-						<p className="text-xs text-slate-500">
-							Tip: Copy an image address from Unsplash or Pexels
-							for best results.
-						</p>
-					</div>
+					<input
+						type="text"
+						placeholder="Paste Image URL here..."
+						className="w-full p-3 rounded-xl border border-slate-200"
+						value={formData.image || ''}
+						onChange={(e) =>
+							updateFormData({ image: e.target.value })
+						}
+					/>
 				</div>
 			</div>
 			<div className="flex  mt-10">
