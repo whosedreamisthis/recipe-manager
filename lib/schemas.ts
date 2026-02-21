@@ -8,7 +8,7 @@ export const ingredientSchema = z.object({
 export const recipeSchema = z.object({
 	title: z.string(),
 	description: z.string(),
-	categories: z.array(),
+	categories: z.array(z.string()),
 	prepTime: z.number(),
 	cookTime: z.number(),
 	image: z.string(),

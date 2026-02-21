@@ -49,6 +49,8 @@ export const useNewRecipeFormStore = create<RecipeFormState>((set) => ({
 					'Gently fold the chocolate into the egg mixture.',
 					'Pour into greased ramekins and bake at 200°C for 12 minutes.',
 				],
+				image:
+					'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=820&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 			},
 		}),
 }));
