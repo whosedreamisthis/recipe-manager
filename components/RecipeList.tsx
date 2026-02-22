@@ -11,10 +11,19 @@ import { useUIStore } from '@/stores/useUIStore';
 import { SignInButton, SignUpButton, useUser } from '@clerk/nextjs';
 import { Button } from './ui/button';
 import { Lock } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getLikedIds, getSavedIds } from '@/app/actions';
 
-export default function RecipeList() {
-	const user = useUser();
-	const { isSignedIn, isLoaded } = useUser();
+export default function RecipeList({ initialData }: { initialData: any }) {
+	const { isSignedIn, user, isLoaded } = useUser();
+	const userName = user?.fullName;
+
+	const query = useSearchStore((state) => state.query);
+	const selectedCategory = useCategoryStore(
+		(state) => state.selectedCategory,
+	);
+	const activeTab = useUIStore((state) => state.activeTab);
+
 	// 1. Fetch Main Feed
 	const {
 		data: dbData,
@@ -22,43 +31,61 @@ export default function RecipeList() {
 		hasNextPage,
 		isFetchingNextPage,
 		isLoading: isLoadingSearch,
-	} = useRecipes();
+	} = useRecipes(initialData, query, selectedCategory);
 
 	// 2. Fetch Saved Feed
 	const { data: savedData, isLoading: isLoadingSaved } = useSavedRecipes();
 
-	const query = useSearchStore((state) => state.query);
-	const selectedCategory = useCategoryStore(
-		(state) => state.selectedCategory,
-	);
-	const activeTab = useUIStore((state) => state.activeTab);
 	const isLoading = activeTab === 'saved' ? isLoadingSaved : isLoadingSearch;
+
+	const { data: savedIds = [] } = useQuery({
+		queryKey: ['recipes', 'saved-ids'],
+		queryFn: getSavedIds,
+	});
+	const { data: likedIds = [] } = useQuery({
+		queryKey: ['recipes', 'liked-ids'],
+		queryFn: getLikedIds,
+	});
+
 	// 3. Centralized Data Switching
+	// RecipeList.tsx
 	const displayRecipes = useMemo(() => {
-		let baseSet: Recipe[] = [];
+		// 1. Flatten pages while handling both array and object responses
+		const baseSet =
+			activeTab === 'saved'
+				? savedData ?? []
+				: dbData?.pages.flatMap((page: any) => {
+						// Check if page is the array itself or an object containing the array
+						return Array.isArray(page) ? page : page.recipes ?? [];
+				  }) ?? [];
 
-		if (activeTab === 'saved') {
-			baseSet = savedData ?? [];
-		} else if (activeTab === 'search') {
-			baseSet = dbData?.pages.flatMap((page) => page.recipes) ?? [];
+		if (baseSet.length === 0) return [];
+
+		// 2. SEARCH TAB: Server-side filtering is active
+		if (activeTab === 'search') {
+			// We only perform basic data sanitization here
+			return baseSet.filter(
+				(recipe) =>
+					recipe.title &&
+					recipe.image &&
+					recipe.title !== 'Untitled Recipe',
+			);
 		}
-		// Note: You can add 'recent' logic here similarly once moved to DB
 
+		// 3. SAVED TAB: Perform local client-side filtering
+		const lowerQuery = query.toLowerCase().trim();
 		return baseSet.filter((recipe) => {
-			const matchesQuery = recipe.title
-				.toLowerCase()
-				.includes(query.toLowerCase());
+			const matchesQuery =
+				lowerQuery === '' ||
+				recipe.title.toLowerCase().includes(lowerQuery);
+
 			const matchesCategory =
 				selectedCategory === '' ||
 				recipe.categories?.includes(selectedCategory);
-			const matchesMine =
-				selectedCategory === '' ||
-				(selectedCategory === 'My Recipes' &&
-					recipe.author === user?.user?.fullName);
-			return (matchesQuery && matchesCategory) || matchesMine;
-		});
-	}, [activeTab, dbData, savedData, query, selectedCategory, user]);
 
+			return matchesQuery && matchesCategory;
+		});
+	}, [activeTab, dbData, savedData, query, selectedCategory]); // Remove userName from deps if not used in filter
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
@@ -113,8 +140,15 @@ export default function RecipeList() {
 	return (
 		<div className="space-y-8 pb-20">
 			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-				{displayRecipes.map((recipe) => (
-					<RecipeCard key={recipe.id} recipe={recipe} />
+				{displayRecipes.map((recipe, index) => (
+					<div key={recipe.id} className="recipe-card-container">
+						<RecipeCard
+							recipe={recipe}
+							index={index}
+							isSaved={savedIds.includes(recipe.id)}
+							isLiked={likedIds.includes(recipe.id)}
+						/>
+					</div>
 				))}
 			</div>
 

@@ -3,16 +3,18 @@ import React from 'react';
 import RecipeList from '@/components/RecipeList';
 import CategoryBar from '@/components/CategoryBar';
 import SearchBar from '@/components/SearchBar';
+// app/page.tsx
+import { fetchRecipes } from '@/app/actions';
+
 export default async function Home() {
+	// Prefetch the first page on the server
+	const initialData = await fetchRecipes(1, 12);
+
 	return (
 		<div className="container mx-auto px-4">
 			<SearchBar />
 			<CategoryBar />
-
-			{/* Pass 'recipes' and 'hasMore' to your list. 
-					Note: You'll need to update RecipeList to handle the "Load More" logic 
-			*/}
-			<RecipeList />
+			<RecipeList initialData={initialData} />
 		</div>
 	);
 }

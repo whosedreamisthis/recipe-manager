@@ -28,7 +28,7 @@ export default function RootLayout({
 		<ClerkProvider>
 			<html lang="en">
 				<body
-					className={`h-[100dvh] flex flex-col overflow-hidden ${roboto.variable} font-sans antialiased`}
+					className={`flex flex-col ${roboto.variable} font-sans antialiased`}
 				>
 					<Providers>
 						<TopNav />

@@ -54,6 +54,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					alt={recipe.title}
 					fill
 					className="object-cover transition-transform duration-500 group-hover:scale-110"
+					priority
 					sizes="(max-width: 768px) 100vw, 33vw"
 				/>
 			</div>
@@ -81,13 +82,13 @@ export default function RecipeDetails({ recipe }: Props) {
 					<div></div>
 				</li> */}
 				{recipe.ingredients.map((ingredient, index) => (
-					<div key={index} className="flex justify-between">
+					<li key={index} className="flex justify-between">
 						<p>{ingredient.name}</p>
 						<div className="flex gap-2">
 							<p>{ingredient.quantity}</p>
 							<p>{ingredient.unit}</p>
 						</div>
-					</div>
+					</li>
 				))}
 			</ul>
 			<div className="border-b mt-4 border-1 border-black"></div>

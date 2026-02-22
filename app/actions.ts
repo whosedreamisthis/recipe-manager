@@ -29,19 +29,29 @@ export const getDb = async () => {
 
 // --- 🥗 RECIPE FETCHING ACTIONS ---
 
-/**
- * Main Feed: Fetches paginated recipes from the global master list
- */
-export async function fetchRecipes(page: number = 1, limit: number = 12) {
+export async function fetchRecipes(
+	page: number = 1,
+	limit: number = 12,
+	query: string = '',
+	category: string = '',
+) {
 	await new Promise((resolve) => setTimeout(resolve, 500));
+	const { db } = await getDb();
 
-	const { db } = await getDb(); // Correctly access the global db
+	// FILTER ON THE SERVER
+	let filtered = db;
+	if (query) {
+		filtered = filtered.filter((r) =>
+			r.title.toLowerCase().includes(query.toLowerCase()),
+		);
+	}
+	if (category && category !== 'My Recipes') {
+		filtered = filtered.filter((r) => r.categories.includes(category));
+	}
 
 	const start = (page - 1) * limit;
-	const end = start + limit;
-
-	const recipes = db.slice(start, end);
-	const hasMore = end < db.length;
+	const recipes = filtered.slice(start, start + limit);
+	const hasMore = start + limit < filtered.length;
 
 	return { recipes, hasMore };
 }

@@ -4,13 +4,18 @@ import RecipeList from '@/components/RecipeList';
 import CategoryBar from '@/components/CategoryBar';
 import SearchBar from '@/components/SearchBar';
 
+// app/page.tsx
+import { fetchRecipes } from '@/app/actions';
+
 export default async function RecipesPage() {
+	// Prefetch the first page on the server
+	const initialData = await fetchRecipes(1, 12);
+
 	return (
 		<div className="container mx-auto px-4">
 			<SearchBar />
 			<CategoryBar />
-
-			<RecipeList />
+			<RecipeList initialData={initialData} />
 		</div>
 	);
 }

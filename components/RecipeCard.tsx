@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { memo } from 'react';
 import { Bookmark, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -15,22 +15,20 @@ import {
 	getLikedIds, // 1. Import the liked IDs fetcher
 } from '@/app/actions';
 
-export default function RecipeCard({ recipe }: { recipe: Recipe }) {
+interface Props {
+	recipe: Recipe;
+	isSaved: boolean; // Pass as prop
+	isLiked: boolean; // Pass as prop
+	index?: number;
+}
+
+const RecipeCard = memo(function RecipeCard({
+	recipe,
+	isSaved,
+	isLiked,
+	index,
+}: Props) {
 	const queryClient = useQueryClient();
-
-	// 2. Fetch Global "Saved" state
-	const { data: savedIds = [] } = useQuery({
-		queryKey: ['recipes', 'saved-ids'],
-		queryFn: () => getSavedIds(),
-	});
-	const isSaved = savedIds.includes(recipe.id);
-
-	// 3. Fetch Global "Liked" state (Fixes the hardcoded false)
-	const { data: likedIds = [] } = useQuery({
-		queryKey: ['recipes', 'liked-ids'],
-		queryFn: () => getLikedIds(),
-	});
-	const isLiked = likedIds.includes(recipe.id);
 
 	const { mutate: toggleSave } = useMutation({
 		mutationFn: () => toggleSaveAction(recipe.id),
@@ -124,6 +122,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
 							sizes="(max-width: 768px) 100vw, 33vw"
+							priority={index !== undefined && index < 3}
 						/>
 					</div>
 
@@ -164,6 +163,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 					}}
 				>
 					<ThumbsUp
+						aria-hidden="true"
 						className={`w-4 h-4 transition-all ${
 							isLiked
 								? 'fill-cyan-500 text-cyan-500'
@@ -197,4 +197,6 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 			</div>
 		</div>
 	);
-}
+});
+
+export default RecipeCard;
