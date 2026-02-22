@@ -1,5 +1,5 @@
 'use client';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Bookmark, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -7,13 +7,8 @@ import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import {
-	toggleSaveAction,
-	toggleLikeAction,
-	getSavedIds,
-	getLikedIds, // 1. Import the liked IDs fetcher
-} from '@/app/actions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toggleSaveAction, toggleLikeAction } from '@/app/actions';
 
 interface Props {
 	recipe: Recipe;
@@ -113,7 +108,11 @@ const RecipeCard = memo(function RecipeCard({
 
 	return (
 		<div className="relative group">
-			<Link href={`/recipes/${recipe.id}`} className="block">
+			<Link
+				href={`/recipes/${recipe.id}`}
+				className="block"
+				aria-label={`View ${recipe.title} recipe`}
+			>
 				<Card className="overflow-hidden p-0 bg-white border-slate-200 transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-lg">
 					<div className="relative h-44 w-full overflow-hidden">
 						<Image
@@ -121,7 +120,7 @@ const RecipeCard = memo(function RecipeCard({
 							alt={recipe.title}
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
-							sizes="(max-width: 768px) 100vw, 33vw"
+							sizes="(max-width: 672px) 50vw, 336px"
 							priority={index !== undefined && index < 3}
 						/>
 					</div>

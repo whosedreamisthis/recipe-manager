@@ -1,7 +1,5 @@
 import { fetchRecipe } from '@/app/actions';
 import RecipeDetails from '@/components/RecipeDetails';
-import { Recipe } from '@/lib/types';
-import React from 'react';
 
 export default async function RecipePage({
 	params,

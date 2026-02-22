@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { recipeSchema, step1Schema, Step1Values } from '@/lib/schemas'; // Your schema from earlier
+import { step1Schema, Step1Values } from '@/lib/schemas'; // Your schema from earlier
 import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';

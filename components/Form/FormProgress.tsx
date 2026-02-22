@@ -1,15 +1,10 @@
 // components/FormProgress.tsx
-import { Check } from 'lucide-react';
-
 interface FormProgressProps {
 	currentStep: number;
 	totalSteps: number;
 }
 
-export default function FormProgress({
-	currentStep,
-	totalSteps,
-}: FormProgressProps) {
+export default function FormProgress({ currentStep }: FormProgressProps) {
 	const steps = [
 		{ id: 1, label: 'Basics' },
 		{ id: 2, label: 'Ingredients' },

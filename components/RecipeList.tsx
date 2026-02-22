@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Recipe } from '@/lib/types';
+
 import RecipeCard from './RecipeCard';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes'; // Import new hook

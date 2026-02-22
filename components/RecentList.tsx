@@ -2,7 +2,7 @@
 import { Recipe } from '@/lib/types';
 import { useRecentStore } from '@/stores/useRecentStore';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import RecipeCard from './RecipeCard';
 import { useQuery } from '@tanstack/react-query';
 import { getLikedIds, getSavedIds } from '@/app/actions';

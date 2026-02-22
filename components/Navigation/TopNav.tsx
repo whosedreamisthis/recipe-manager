@@ -1,19 +1,12 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, ThumbsDown, UtensilsCrossed } from 'lucide-react';
+import { ChevronLeft, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link'; // Import Link
 import { useUIStore } from '@/stores/useUIStore'; // Import UI Store
 import { useEffect } from 'react';
-import {
-	ClerkProvider,
-	SignInButton,
-	SignUpButton,
-	SignedIn,
-	SignedOut,
-	UserButton,
-} from '@clerk/nextjs';
+
 import ProfileButton from '../ProfileButton';
 export default function TopNav() {
 	const pathname = usePathname();
@@ -78,6 +71,7 @@ export default function TopNav() {
 							href="/recipes/"
 							onClick={handleLogoClick}
 							className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+							aria-label="View all recipes"
 						>
 							<UtensilsCrossed className="w-5 h-5 text-cyan-500" />
 							<h1 className="font-mono font-bold text-sm tracking-tighter uppercase">

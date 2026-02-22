@@ -2,7 +2,7 @@
 import React from 'react';
 import { useShoppingListStore } from '@/stores/useShoppingListStore';
 import { Button } from './ui/button';
-import { Trash2, X } from 'lucide-react'; // Import icons
+import { X } from 'lucide-react'; // Import icons
 
 export default function ShoppingList() {
 	const shoppingList = useShoppingListStore((state) => state.shoppingList);

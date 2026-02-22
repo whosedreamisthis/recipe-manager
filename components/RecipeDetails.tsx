@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
 import Image from 'next/image';
@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { PlusCircle } from 'lucide-react';
 import { useShoppingListStore } from '@/stores/useShoppingListStore';
 import { toast } from 'sonner';
-import { useUIStore } from '@/stores/useUIStore';
+
 import { useRouter } from 'next/navigation';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 }
 export default function RecipeDetails({ recipe }: Props) {
 	const addRecent = useRecentStore((state) => state.addRecent);
-	const setActiveTab = useUIStore((state) => state.setActiveTab);
+
 	const router = useRouter();
 	const addToShoppingList = useShoppingListStore(
 		(state) => state.addToShoppingList,
@@ -55,7 +55,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					fill
 					className="object-cover transition-transform duration-500 group-hover:scale-110"
 					priority
-					sizes="(max-width: 768px) 100vw, 33vw"
+					sizes="(max-width: 672px) 50vw, 336px"
 				/>
 			</div>
 			<em className="italics">{recipe.author}</em>

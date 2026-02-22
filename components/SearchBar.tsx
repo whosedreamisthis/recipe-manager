@@ -1,6 +1,6 @@
 'use client';
 import { Search } from 'lucide-react';
-import React, { useState, useEffect } from 'react'; // Added hooks
+import { useState, useEffect } from 'react'; // Added hooks
 import { Input } from './ui/input';
 import { useSearchStore } from '@/stores/useSearchStore';
 

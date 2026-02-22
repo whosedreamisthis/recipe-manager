@@ -4,7 +4,6 @@ import { useSearchStore } from '@/stores/useSearchStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { Clock, Bookmark, ScrollText, Search, Plus } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
 
 export default function BottomNav() {
 	const { activeTab, setActiveTab } = useUIStore();
@@ -25,6 +24,7 @@ export default function BottomNav() {
 				href="/"
 				onClick={() => handleTabChange('search')}
 				className="flex flex-col items-center gap-1"
+				aria-label="Change to search recipes tab"
 			>
 				<Search
 					className={`w-6 h-6 transition-colors ${
@@ -40,6 +40,7 @@ export default function BottomNav() {
 				href="/?tab=saved"
 				onClick={() => handleTabChange('saved')}
 				className="flex flex-col items-center gap-1"
+				aria-label="Change to saved recipes tab"
 			>
 				<Bookmark
 					className={`w-6 h-6 transition-colors ${
@@ -55,6 +56,7 @@ export default function BottomNav() {
 				href="/recent"
 				onClick={() => handleTabChange('recent')}
 				className="flex flex-col items-center gap-1"
+				aria-label="Change to recent recipes tab"
 			>
 				<Clock
 					className={`w-6 h-6 transition-colors ${
@@ -70,6 +72,7 @@ export default function BottomNav() {
 				href="/shopping-list"
 				onClick={() => handleTabChange('shopping-list')}
 				className="flex flex-col items-center gap-1"
+				aria-label="Change to shopping list tab"
 			>
 				<ScrollText
 					className={`w-6 h-6 transition-colors ${
@@ -84,6 +87,7 @@ export default function BottomNav() {
 				href="/create"
 				onClick={() => handleTabChange('create')}
 				className="flex flex-col items-center gap-1"
+				aria-label="Go to create new recipe form"
 			>
 				<Plus
 					className={`w-6 h-6 transition-colors ${
