@@ -30,7 +30,7 @@ export const useNewRecipeFormStore = create<RecipeFormState>((set) => ({
 	resetForm: () => set({ step: 1, formData: initialData }),
 	fillDemoData: () =>
 		set({
-			step: 3, // Jump straight to the end to show the list logic
+			step: 1, // Jump straight to the end to show the list logic
 			formData: {
 				title: 'Signature Chocolate Lava Cake',
 				description:

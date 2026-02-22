@@ -6,6 +6,7 @@ import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import Image from 'next/image';
+import { useEffect } from 'react';
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
 
@@ -13,6 +14,7 @@ export default function Step1Basics() {
 		register,
 		handleSubmit,
 		control,
+		reset,
 		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(
@@ -26,6 +28,10 @@ export default function Step1Basics() {
 		),
 		defaultValues: formData,
 	});
+
+	useEffect(() => {
+		reset(formData);
+	}, [formData, reset]);
 
 	const onSubmit = (data: any) => {
 		updateFormData(data);
