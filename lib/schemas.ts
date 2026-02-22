@@ -15,3 +15,13 @@ export const recipeSchema = z.object({
 	ingredients: z.array(ingredientSchema),
 	instructions: z.array(z.string()),
 });
+
+export const step1Schema = recipeSchema.pick({
+	title: true,
+	description: true,
+	categories: true,
+	prepTime: true,
+	cookTime: true,
+});
+
+export type Step1Values = z.infer<typeof step1Schema>;

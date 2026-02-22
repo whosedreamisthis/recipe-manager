@@ -4,6 +4,8 @@ import { useRecentStore } from '@/stores/useRecentStore';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import RecipeCard from './RecipeCard';
+import { useQuery } from '@tanstack/react-query';
+import { getLikedIds, getSavedIds } from '@/app/actions';
 
 interface Props {
 	recipes: Recipe[];
@@ -11,7 +13,14 @@ interface Props {
 export default function RecentList() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const recentRecipes = useRecentStore((state) => state.recentRecipes);
-
+	const { data: savedIds = [] } = useQuery({
+		queryKey: ['recipes', 'saved-ids'],
+		queryFn: getSavedIds,
+	});
+	const { data: likedIds = [] } = useQuery({
+		queryKey: ['recipes', 'liked-ids'],
+		queryFn: getLikedIds,
+	});
 	useEffect(() => {
 		setIsHydrated(true);
 	}, []);
@@ -36,7 +45,12 @@ export default function RecentList() {
 	return (
 		<div className="grid grid-cols-2 gap-5">
 			{recentRecipes.map((recipe) => (
-				<RecipeCard key={recipe.id} recipe={recipe} />
+				<RecipeCard
+					key={recipe.id}
+					recipe={recipe}
+					isSaved={savedIds.includes(recipe.id)}
+					isLiked={likedIds.includes(recipe.id)}
+				/>
 			))}
 		</div>
 	);

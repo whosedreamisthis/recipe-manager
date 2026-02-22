@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
+import { Suspense } from 'react';
 
 import './globals.css';
 import TopNav from '@/components/Navigation/TopNav';
@@ -31,10 +32,20 @@ export default function RootLayout({
 					className={`flex flex-col ${roboto.variable} font-sans antialiased`}
 				>
 					<Providers>
-						<TopNav />
+						<Suspense fallback={<div className="h-10" />}>
+							<TopNav />
+						</Suspense>
 						<main className="flex-1 overflow-y-auto no-scrollbar relative">
 							<div className="max-w-2xl mx-auto p-4">
-								{children}
+								<Suspense
+									fallback={
+										<div className="h-screen flex items-center justify-center">
+											Loading...
+										</div>
+									}
+								>
+									{children}
+								</Suspense>
 							</div>
 							<Toaster position="bottom-right" richColors />
 						</main>

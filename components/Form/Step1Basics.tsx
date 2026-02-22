@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { recipeSchema } from '@/lib/schemas'; // Your schema from earlier
+import { recipeSchema, step1Schema, Step1Values } from '@/lib/schemas'; // Your schema from earlier
 import { CategorySelect } from './CategorySelect'; // The Combobox we discussed
 import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
@@ -14,20 +14,18 @@ export default function Step1Basics() {
 	const {
 		register,
 		handleSubmit,
-		control,
 		reset,
 		formState: { errors },
-	} = useForm({
-		resolver: zodResolver(
-			recipeSchema.pick({
-				title: true,
-				description: true,
-				categories: true,
-				prepTime: true,
-				cookTime: true,
-			}),
-		),
-		defaultValues: formData,
+	} = useForm<Step1Values>({
+		// 3. Use the inferred type here
+		resolver: zodResolver(step1Schema),
+		defaultValues: {
+			title: formData.title || '',
+			description: formData.description || '',
+			categories: formData.categories || [],
+			prepTime: formData.prepTime || 0,
+			cookTime: formData.cookTime || 0,
+		},
 	});
 
 	useEffect(() => {
