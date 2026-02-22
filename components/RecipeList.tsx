@@ -55,7 +55,7 @@ export default function RecipeList() {
 				selectedCategory === '' ||
 				(selectedCategory === 'My Recipes' &&
 					recipe.author === user?.user?.fullName);
-			return matchesQuery && matchesCategory && matchesMine;
+			return (matchesQuery && matchesCategory) || matchesMine;
 		});
 	}, [activeTab, dbData, savedData, query, selectedCategory, user]);
 
