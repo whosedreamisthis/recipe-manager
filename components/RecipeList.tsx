@@ -75,13 +75,20 @@ export default function RecipeList() {
 
 				<div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
 					<SignUpButton mode="modal">
-						<Button className="bg-cyan-600 hover:bg-cyan-700 flex-1">
+						<Button
+							className="bg-cyan-600 hover:bg-cyan-700 flex-1"
+							aria-label="Sign up"
+						>
 							Sign Up
 						</Button>
 					</SignUpButton>
 
 					<SignInButton mode="modal">
-						<Button variant="outline" className="flex-1">
+						<Button
+							variant="outline"
+							className="flex-1"
+							aria-label="Sign in"
+						>
 							Log In
 						</Button>
 					</SignInButton>
@@ -130,13 +137,14 @@ export default function RecipeList() {
       2. Ensure we don't show it if the current filtered view is empty
     */}
 					{query === '' && selectedCategory === '' && (
-						<button
+						<Button
 							onClick={() => fetchNextPage()}
 							disabled={isFetchingNextPage}
 							className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all disabled:bg-slate-300 hover:bg-slate-800 active:scale-95"
+							aria-label="Fetch next page of recipes"
 						>
 							{isFetchingNextPage ? 'Syncing...' : 'Load More'}
-						</button>
+						</Button>
 					)}
 
 					{/* Optional: Indicator for recruiters that they've seen all filtered results */}

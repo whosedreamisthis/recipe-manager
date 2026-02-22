@@ -108,6 +108,7 @@ export default function Step3Instructions() {
 										size="sm"
 										onClick={() => move(index, index - 1)}
 										disabled={index === 0}
+										aria-label="Move step up"
 									>
 										<ArrowUp className="w-3 h-3 mr-1" /> Up
 									</Button>
@@ -117,6 +118,7 @@ export default function Step3Instructions() {
 										size="sm"
 										onClick={() => move(index, index + 1)}
 										disabled={index === fields.length - 1}
+										aria-label="Move down up"
 									>
 										<ArrowDown className="w-3 h-3 mr-1" />{' '}
 										Down
@@ -128,6 +130,7 @@ export default function Step3Instructions() {
 										size="sm"
 										className="text-red-500 hover:text-red-600 hover:bg-red-50"
 										onClick={() => remove(index)}
+										aria-label={`Delete step ${index + 1}`}
 									>
 										<Trash2 className="w-3 h-3" />
 									</Button>
@@ -142,6 +145,7 @@ export default function Step3Instructions() {
 					variant="outline"
 					className="w-full border-dashed border-2 py-8 hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-600 transition-all"
 					onClick={() => append({ value: '' })}
+					aria-label="Add a step to the new recipe"
 				>
 					<Plus className="w-4 h-4 mr-2" />
 					Add Next Step
@@ -153,12 +157,14 @@ export default function Step3Instructions() {
 							onClick={() => setStep(2)}
 							variant="outline"
 							className="rounded-md font-bold px-8 mr-auto"
+							aria-label="Set form step 2"
 						>
 							Back
 						</Button>
 						<Button
 							type="submit"
 							className="bg-cyan-600 hover:bg-cyan-700 text-white rounded-md font-bold"
+							aria-label="Submit new recipe form"
 						>
 							{user ? 'Publish Recipe' : 'Save Locally'}
 						</Button>

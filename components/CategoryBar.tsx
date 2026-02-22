@@ -48,6 +48,7 @@ export default function CategoryBar() {
 				const isActive = cat === selectedCategory;
 				return (
 					<Button
+						aria-label={`Select Category ${cat}`}
 						key={cat}
 						className={`whitespace-nowrap px-4 py-1 rounded-md border   text-sm hover:border-cyan-500 transition-colors ${
 							isActive

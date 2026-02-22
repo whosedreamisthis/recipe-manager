@@ -69,6 +69,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					size="sm"
 					onClick={addIngredientsToShoppingList}
 					className="flex gap-2 absolute top-0 right-0 hover:bg-gray-700 active:bg-gray-400"
+					aria-label="Add ingredients to shopping list"
 				>
 					<PlusCircle className="w-4 h-4" />
 					<span>Add All</span>

@@ -7,6 +7,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import Image from 'next/image';
 import { useEffect } from 'react';
+import { Label } from '../ui/label';
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
 
@@ -48,11 +49,15 @@ export default function Step1Basics() {
 		<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 			<div className="flex flex-col gap-5">
 				<div>
-					<label className="block text-sm font-medium mb-1">
+					<Label
+						htmlFor="title"
+						className="block text-sm font-medium mb-1"
+					>
 						Recipe Title
-					</label>
+					</Label>
 					<Input
 						{...register('title')}
+						placeholder="e.g. Grandma's Famous Pasta"
 						className="w-full p-2 border rounded-sm"
 					/>
 					{errors.title && (
@@ -64,9 +69,12 @@ export default function Step1Basics() {
 
 				<div className="grid grid-cols-2 gap-4">
 					<div>
-						<label className="block text-sm font-medium mb-1">
+						<Label
+							htmlFor="prepTime"
+							className="block text-sm font-medium mb-1"
+						>
 							Prep Time (mins)
-						</label>
+						</Label>
 						<Input
 							type="number"
 							{...register('prepTime', { valueAsNumber: true })}
@@ -74,9 +82,12 @@ export default function Step1Basics() {
 						/>
 					</div>
 					<div>
-						<label className="block text-sm font-medium mb-1">
+						<Label
+							htmlFor="cookTime"
+							className="block text-sm font-medium mb-1"
+						>
 							Cook Time (mins)
-						</label>
+						</Label>
 						<Input
 							type="number"
 							{...register('cookTime', { valueAsNumber: true })}
@@ -123,7 +134,7 @@ export default function Step1Basics() {
 							)}
 						</div>
 
-						<input
+						<Input
 							type="text"
 							placeholder="Paste Image URL here..."
 							className="w-full p-3 rounded-xl border border-slate-200"
@@ -140,6 +151,7 @@ export default function Step1Basics() {
 				<Button
 					type="submit"
 					className="bg-cyan-600 text-white rounded-md font-bold px-8 ml-auto"
+					aria-label="Go to next form step (ingredients)"
 				>
 					Next
 				</Button>

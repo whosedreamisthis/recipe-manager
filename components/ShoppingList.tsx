@@ -22,6 +22,7 @@ export default function ShoppingList() {
 						variant="destructive"
 						size="sm"
 						onClick={clearShoppingList}
+						aria-label="Clear shopping list"
 					>
 						Clear All
 					</Button>
@@ -53,6 +54,7 @@ export default function ShoppingList() {
 								size="icon"
 								className="text-slate-400 hover:text-red-500 hover:bg-red-50"
 								onClick={() => removeFromList(ingredient.name)}
+								aria-label={`remove ${ingredient.name} from shopping list`}
 							>
 								<X className="h-4 w-4" />
 							</Button>

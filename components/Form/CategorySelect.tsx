@@ -40,15 +40,17 @@ export function CategorySelect({ selected, onChange }: CategorySelectProps) {
 					<Badge
 						key={item}
 						variant="secondary"
-						className="pl-2 pr-1 py-1"
+						className="pl-2 pr-1 py-1 pl-2"
 					>
 						{item}
-						<button
-							className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-ring"
+						<Button
+							className="ml-1 rounded-md outline-none focus:ring-2 focus:ring-ring"
+							variant="ghost"
 							onClick={() => handleUnselect(item)}
+							aria-label={`unselect category ${item}`}
 						>
-							<X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-						</button>
+							<X className="h-3 w-3 hover:text-foreground" />
+						</Button>
 					</Badge>
 				))}
 			</div>

@@ -155,6 +155,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 				<Button
 					size="icon"
 					variant="ghost"
+					aria-label="Toggle like recipe"
 					className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors"
 					onClick={(e) => {
 						e.preventDefault();
@@ -183,6 +184,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
 						e.stopPropagation();
 						toggleSave();
 					}}
+					aria-label="Toggle save recipe"
 				>
 					<Bookmark
 						className={`w-5 h-5 transition-colors ${

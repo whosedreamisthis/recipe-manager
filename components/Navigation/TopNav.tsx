@@ -65,6 +65,7 @@ export default function TopNav() {
 							size="sm"
 							onClick={() => router.back()}
 							className="flex items-center gap-1 -ml-2 text-slate-700 hover:text-cyan-400"
+							aria-label="Go back a page"
 						>
 							<ChevronLeft className="w-5 h-5" />
 							<span className="font-mono text-xs uppercase tracking-widest">

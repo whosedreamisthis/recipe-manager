@@ -26,6 +26,7 @@ export default function NewRecipeForm() {
 					onClick={fillDemoData}
 					variant="outline"
 					className="bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100 flex gap-2"
+					aria-label="Fill form with demo data"
 				>
 					<Sparkles className="w-4 h-4" />
 					Demo Fill
