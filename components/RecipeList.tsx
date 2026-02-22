@@ -13,6 +13,7 @@ import { Button } from './ui/button';
 import { Lock } from 'lucide-react';
 
 export default function RecipeList() {
+	const user = useUser();
 	const { isSignedIn, isLoaded } = useUser();
 	// 1. Fetch Main Feed
 	const {
@@ -50,9 +51,13 @@ export default function RecipeList() {
 			const matchesCategory =
 				selectedCategory === '' ||
 				recipe.categories?.includes(selectedCategory);
-			return matchesQuery && matchesCategory;
+			const matchesMine =
+				selectedCategory === '' ||
+				(selectedCategory === 'My Recipes' &&
+					recipe.author === user?.user?.fullName);
+			return matchesQuery && matchesCategory && matchesMine;
 		});
-	}, [activeTab, dbData, savedData, query, selectedCategory]);
+	}, [activeTab, dbData, savedData, query, selectedCategory, user]);
 
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (

@@ -377,6 +377,7 @@ export const SEED_RECIPES = [
 	...generateMoreRecipes(90),
 ];
 export const RECIPE_CATEGORIES = [
+	'My Recipes',
 	// Course
 	'Breakfast',
 	'Lunch',

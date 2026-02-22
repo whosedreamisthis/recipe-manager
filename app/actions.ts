@@ -113,6 +113,7 @@ export const addRecipe = async (recipeData: Omit<Recipe, 'id'>) => {
 
 	const newRecipe: Recipe = {
 		...recipeData,
+		categories: [...recipeData.categories, 'My Recipes'],
 		id: newId,
 		author: recipeData.author || 'Guest',
 		likes: recipeData.likes ?? 0,
@@ -124,6 +125,7 @@ export const addRecipe = async (recipeData: Omit<Recipe, 'id'>) => {
 	revalidatePath('/');
 	revalidatePath(`/recipes/${newId}`);
 
+	console.log('new recipe', newRecipe);
 	return { success: true, recipeId: newId };
 };
 
@@ -139,3 +141,14 @@ export const deleteRecipe = async (recipeId: string) => {
 	revalidatePath('/');
 	return { success: true };
 };
+
+export async function fetchMyRecipes(name: string) {
+	await new Promise((resolve) => setTimeout(resolve, 500));
+
+	// 1. Await getDb() to get the GlobalDatabase object
+	const { db } = await getDb();
+
+	// 2. Now you can call .filter() on the 'db' array
+	// This looks for recipes where the author matches your specific user string
+	return db.filter((recipe) => recipe.author === 'Guest User');
+}

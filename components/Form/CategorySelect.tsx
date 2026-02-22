@@ -24,6 +24,9 @@ interface CategorySelectProps {
 }
 
 export function CategorySelect({ selected, onChange }: CategorySelectProps) {
+	const selectableCategories = RECIPE_CATEGORIES.filter(
+		(category) => category.toLowerCase() !== 'My Recipes'.toLowerCase(),
+	);
 	const [open, setOpen] = React.useState(false);
 
 	const handleUnselect = (item: string) => {
@@ -69,7 +72,7 @@ export function CategorySelect({ selected, onChange }: CategorySelectProps) {
 						<CommandInput placeholder="Search categories..." />
 						<CommandEmpty>No category found.</CommandEmpty>
 						<CommandGroup className="max-h-64 overflow-auto">
-							{RECIPE_CATEGORIES.map((category) => (
+							{selectableCategories.map((category) => (
 								<CommandItem
 									key={category}
 									onSelect={() => {
