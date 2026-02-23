@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
 import Image from 'next/image';
@@ -14,6 +14,7 @@ interface Props {
 	recipe: Recipe;
 }
 export default function RecipeDetails({ recipe }: Props) {
+	const [imgSrc, setImgSrc] = useState(recipe.image || '');
 	const addRecent = useRecentStore((state) => state.addRecent);
 
 	const router = useRouter();
@@ -26,6 +27,10 @@ export default function RecipeDetails({ recipe }: Props) {
 			addRecent(recipe);
 		}
 	}, [recipe, addRecent]);
+
+	useEffect(() => {
+		setImgSrc(recipe.image || '');
+	}, [recipe.image]);
 
 	const addIngredientsToShoppingList = () => {
 		addToShoppingList(recipe.ingredients);
@@ -50,12 +55,13 @@ export default function RecipeDetails({ recipe }: Props) {
 		<div>
 			<div className="relative h-44 w-full overflow-hidden">
 				<Image
-					src={recipe.image}
+					src={imgSrc || '/placeholder-recipe.jpg'}
 					alt={recipe.title}
 					fill
 					className="object-cover transition-transform duration-500 group-hover:scale-110"
 					priority
 					sizes="(max-width: 672px) 50vw, 336px"
+					onError={() => setImgSrc('/placeholder-recipe.jpg')}
 				/>
 			</div>
 			<em className="italics">{recipe.author}</em>

@@ -6,11 +6,11 @@ import { useNewRecipeFormStore } from '@/stores/useNewRecipeFormStore';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Label } from '../ui/label';
 export default function Step1Basics() {
 	const { formData, setStep, updateFormData } = useNewRecipeFormStore();
-
+	const [imgSrc, setImgSrc] = useState(formData.image || '');
 	const {
 		register,
 		handleSubmit,
@@ -31,6 +31,10 @@ export default function Step1Basics() {
 	useEffect(() => {
 		reset(formData);
 	}, [formData, reset]);
+
+	useEffect(() => {
+		setImgSrc(formData.image || '');
+	}, [formData.image]);
 
 	const onSubmit = (data: any) => {
 		updateFormData(data);
@@ -113,14 +117,13 @@ export default function Step1Basics() {
 						<div className="relative w-full h-64 aspect-video rounded-sm bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center">
 							{formData.image ? (
 								<Image
-									src={formData.image}
+									src={imgSrc || '/placeholder-recipe.jpg'}
 									fill
 									alt="Preview"
 									className="object-cover"
 									sizes="(max-width: 768px) 100vw, 50vw"
-									onError={(e) =>
-										(e.currentTarget.src =
-											'/placeholder-recipe.jpg')
+									onError={() =>
+										setImgSrc('/placeholder-recipe.jpg')
 									}
 								/>
 							) : (

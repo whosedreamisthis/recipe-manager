@@ -1,5 +1,5 @@
 'use client';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Bookmark, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -23,6 +23,7 @@ const RecipeCard = memo(function RecipeCard({
 	isLiked,
 	index,
 }: Props) {
+	const [imgSrc, setImgSrc] = useState(recipe.image || '');
 	const queryClient = useQueryClient();
 
 	const { mutate: toggleSave } = useMutation({
@@ -106,6 +107,10 @@ const RecipeCard = memo(function RecipeCard({
 		},
 	});
 
+	useEffect(() => {
+		setImgSrc(recipe.image || '');
+	}, [recipe.image]);
+
 	return (
 		<div className="relative group">
 			<Link
@@ -116,12 +121,13 @@ const RecipeCard = memo(function RecipeCard({
 				<Card className="overflow-hidden p-0 bg-white border-slate-200 transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-lg">
 					<div className="relative h-44 w-full overflow-hidden">
 						<Image
-							src={recipe.image}
+							src={imgSrc || '/placeholder-recipe.jpg'}
 							alt={recipe.title}
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
 							sizes="(max-width: 672px) 50vw, 336px"
 							priority={index !== undefined && index < 3}
+							onError={() => setImgSrc('/placeholder-recipe.jpg')}
 						/>
 					</div>
 
