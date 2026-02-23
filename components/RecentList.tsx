@@ -65,7 +65,7 @@ export default function RecentList() {
 	}
 
 	return (
-		<div className="grid grid-cols-2 gap-3">
+		<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 overflow-y-auto no-scrollbar">
 			{displayRecipes.map((recipe) => (
 				<RecipeCard
 					key={recipe.id}

@@ -8,13 +8,16 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { addRecipe } from '@/app/actions';
 import { Recipe } from '@/lib/types';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface InstructionForm {
 	instructions: { value: string }[];
 }
 
 export default function Step3Instructions() {
+	const queryClient = useQueryClient();
 	const { user } = useUser();
+	const userId = user?.id;
 	const router = useRouter();
 
 	const {
@@ -47,7 +50,7 @@ export default function Step3Instructions() {
 			description: formData.description || '',
 			// Providing a default string here fixes the 'undefined' error
 			author: user?.fullName ? user.fullName : ('Guest User' as string),
-			authorId: user?.id ? user.id : 'guestId',
+			authorId: userId ? userId : 'guestId',
 			likes: 0,
 			prepTime: Number(formData.prepTime) || 0,
 			cookTime: Number(formData.cookTime) || 0,
@@ -63,8 +66,15 @@ export default function Step3Instructions() {
 			if (result.success) {
 				toast.success('Recipe Created!');
 				resetForm();
+				await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+
+				// 2. If you have a specific "My Recipes" query key, clear that too
+				await queryClient.invalidateQueries({
+					queryKey: ['recipes', 'my-recipes', userId],
+				});
 				// This redirect works because 'addRecipe' returns a valid ID
 				router.push(`/recipes/${result.recipeId}`);
+				router.refresh();
 			}
 		} catch (error) {
 			toast.error('Failed to save recipe');

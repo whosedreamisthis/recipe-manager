@@ -140,17 +140,33 @@ export const addRecipe = async (recipeData: any) => {
 	}
 };
 
-export const deleteRecipe = async (recipeId: string) => {
+export const deleteRecipe = async (recipeId: string, userId: string) => {
 	try {
+		// 1. Fetch the recipe first to check ownership
+		const recipe = await prisma.recipe.findUnique({
+			where: { id: recipeId },
+			select: { authorId: true }, // We only need the ID for validation
+		});
+
+		// 2. Security Check: Only the creator can delete
+		if (!recipe || recipe.authorId !== userId) {
+			console.error('Unauthorized delete attempt by user:', userId);
+			return { success: false, error: 'Unauthorized' };
+		}
+
+		// 3. Execute Delete
 		await prisma.recipe.delete({
 			where: { id: recipeId },
 		});
 
+		// 4. Clear cache for the gallery and the dashboard
 		revalidatePath('/');
+		revalidatePath('/dashboard');
+
 		return { success: true };
 	} catch (error) {
 		console.error('Delete Error:', error);
-		return { success: false };
+		return { success: false, error: 'Internal Server Error' };
 	}
 };
 
