@@ -157,7 +157,7 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 	return (
 		<div className="space-y-8 pb-20 m-0">
-			<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+			<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 overflow-y-auto no-scrollbar">
 				{displayRecipes.map((recipe, index) => (
 					<div key={recipe.id} className="recipe-card-container">
 						<RecipeCard

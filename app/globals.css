@@ -127,7 +127,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    scrollbar-gutter: stable;
+    
     min-height: 100svh;
   }
 }
@@ -157,7 +157,7 @@
   }
   .recipe-card-container {
     content-visibility: auto;
-    contain-intrinsic-size: 1px 300px; /* Estimates height of one card */
+    contain-intrinsic-size: auto 340px; /* Estimates height of one card */
   }
 
   /* Smooths the arrival of images to improve perceived LCP */
@@ -179,4 +179,16 @@ ol {
 @theme {
   /* This maps the "font-sans" utility to your Google Font variable */
   --font-sans: var(--font-main);
+}
+
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
