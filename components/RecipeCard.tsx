@@ -9,22 +9,27 @@ import { Recipe } from '@/lib/types';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toggleSaveAction, toggleLikeAction } from '@/app/actions';
+import { useUser } from '@clerk/nextjs';
 
 interface Props {
 	recipe: Recipe;
 	isSaved: boolean; // Pass as prop
 	isLiked: boolean; // Pass as prop
 	index?: number;
+	onLike: () => void;
 }
 
 const RecipeCard = memo(function RecipeCard({
 	recipe,
 	isSaved,
 	isLiked,
+	onLike,
 	index,
 }: Props) {
 	const [imgSrc, setImgSrc] = useState(recipe.image || '');
 	const queryClient = useQueryClient();
+	const { user } = useUser(); // Get current user
+	const userId = user?.id;
 
 	const { mutate: toggleSave } = useMutation({
 		mutationFn: () => toggleSaveAction(recipe.id),
@@ -68,42 +73,46 @@ const RecipeCard = memo(function RecipeCard({
 		},
 	});
 
+	// --- LIKE MUTATION ---
 	const { mutate: toggleLike } = useMutation({
-		mutationFn: () => toggleLikeAction(recipe.id),
-		onMutate: () => {
-			queryClient.cancelQueries({ queryKey: ['recipes', 'liked-ids'] });
+		// IMPORTANT: Pass userId to the action
+		mutationFn: () => toggleLikeAction(recipe.id, userId as string),
+		onMutate: async () => {
+			if (!userId) {
+				toast.error('Please log in to like recipes');
+				throw new Error('Not authenticated');
+			}
+
+			await queryClient.cancelQueries({ queryKey: ['likes', userId] });
 			const previousLikedIds = queryClient.getQueryData([
-				'recipes',
-				'liked-ids',
+				'likes',
+				userId,
 			]);
+
 			queryClient.setQueryData(
-				['recipes', 'liked-ids'],
+				['likes', userId],
 				(old: string[] | undefined) => {
 					const current = old ?? [];
 					return current.includes(recipe.id)
-						? current.filter((id) => id !== recipe.id) // Remove if exists
+						? current.filter((id) => id !== recipe.id)
 						: [...current, recipe.id];
 				},
 			);
 
 			return { previousLikedIds };
 		},
-		onError: (err, variabels, context) => {
+		onError: (err, variables, context) => {
 			if (context?.previousLikedIds) {
 				queryClient.setQueryData(
-					['recipes', 'liked-ids'],
+					['likes', userId],
 					context.previousLikedIds,
 				);
 			}
 			toast.error('Failed to like recipe');
 		},
 		onSettled: () => {
-			// 4. Invalidate the liked IDs list so the ThumbsUp changes color
-			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'liked-ids'],
-			});
-			// Also invalidate main recipes to update the "count" number
-			queryClient.invalidateQueries({ queryKey: ['recipes'] });
+			queryClient.invalidateQueries({ queryKey: ['likes', userId] });
+			queryClient.invalidateQueries({ queryKey: ['recipes'] }); // Refresh counts
 		},
 	});
 
@@ -146,7 +155,7 @@ const RecipeCard = memo(function RecipeCard({
 								<div className="w-6" />
 								<span className="text-sm font-semibold text-slate-700">
 									{/* Shows actual count + 1 if liked locally */}
-									{isLiked ? recipe.likes + 1 : recipe.likes}
+									{recipe.likes ?? 0}
 								</span>
 							</div>
 						</CardDescription>

@@ -11,15 +11,16 @@ export async function fetchRecipes(
 	query: string = '',
 	category: string = '',
 ) {
+	// 1. Calculate pagination offset
 	const skip = (page - 1) * limit;
 
-	// Build the dynamic Prisma 'where' clause
+	// 2. Build the dynamic filter (Where clause)
 	const where: any = {};
 
 	if (query) {
 		where.title = {
 			contains: query,
-			mode: 'insensitive', // Makes search case-insensitive
+			mode: 'insensitive', // Makes "Pasta" match "pasta"
 		};
 	}
 
@@ -30,25 +31,42 @@ export async function fetchRecipes(
 	}
 
 	try {
+		// 3. Execute both queries in parallel for performance
 		const [recipes, totalCount] = await Promise.all([
 			prisma.recipe.findMany({
 				where,
 				skip,
 				take: limit,
 				orderBy: { createdAt: 'desc' },
+				include: {
+					// This allows us to get the count of the Likes relationship
+					// without fetching every individual Like record
+					_count: {
+						select: { likes: true },
+					},
+				},
 			}),
 			prisma.recipe.count({ where }),
 		]);
 
+		// 4. Calculate if there's a next page
 		const hasMore = skip + limit < totalCount;
 
+		// 5. Map the data to fix the "NaN" issue
+		// We transform the '_count' object into a single 'likes' number
+		// so the frontend stays clean and easy to read.
+		const formattedRecipes = recipes.map((r) => ({
+			...r,
+			likes: r._count?.likes ?? 0, // Fallback to 0 if count is missing
+		}));
+
 		return {
-			// Prisma JSON fields need a quick cast to match your Recipe type
-			recipes: recipes as any[],
+			recipes: formattedRecipes,
 			hasMore,
 		};
 	} catch (error) {
 		console.error('Fetch Recipes Error:', error);
+		// Return empty state on error to prevent the UI from crashing
 		return { recipes: [], hasMore: false };
 	}
 }
@@ -125,20 +143,6 @@ export async function fetchMyRecipes(userId: string) {
 // Note: For a real app, you'd want a separate "Like" table,
 // but for now, we can increment the like count on the recipe.
 
-export async function toggleLikeAction(recipeId: string) {
-	try {
-		await prisma.recipe.update({
-			where: { id: recipeId },
-			data: {
-				likes: { increment: 1 }, // Simplified logic
-			},
-		});
-		revalidatePath('/');
-	} catch (error) {
-		console.error('Like Error:', error);
-	}
-}
-
 export async function getSavedRecipes(ids: string[] = []): Promise<any[]> {
 	try {
 		if (ids.length === 0) return [];
@@ -172,7 +176,51 @@ export async function getSavedIds(): Promise<string[]> {
 	return [];
 }
 
-export async function getLikedIds(): Promise<string[]> {
-	// Eventually: return await prisma.like.findMany(...)
-	return [];
+export async function toggleLikeAction(recipeId: string, userId: string) {
+	if (!userId) {
+		console.error('User ID is required to like a recipe');
+		return { success: false, error: 'Not authenticated' };
+	}
+
+	try {
+		const existing = await prisma.like.findUnique({
+			where: {
+				userId_recipeId: { userId, recipeId },
+			},
+		});
+
+		if (existing) {
+			await prisma.like.delete({ where: { id: existing.id } });
+		} else {
+			await prisma.like.create({ data: { userId, recipeId } });
+		}
+
+		revalidatePath('/');
+		return { success: true };
+	} catch (error) {
+		console.error(error);
+		return { success: false };
+	}
+}
+
+export async function getLikedIds(userId: string): Promise<string[]> {
+	// If no user is logged in, return an empty array immediately
+	if (!userId) return [];
+
+	try {
+		const likes = await prisma.like.findMany({
+			where: {
+				userId: userId,
+			},
+			select: {
+				recipeId: true, // We only need the ID of the recipe
+			},
+		});
+
+		// Transform [{ recipeId: '1' }, { recipeId: '2' }] into ['1', '2']
+		return likes.map((like) => like.recipeId);
+	} catch (error) {
+		console.error('❌ Error in getLikedIds:', error);
+		return [];
+	}
 }

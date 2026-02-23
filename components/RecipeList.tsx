@@ -12,7 +12,7 @@ import { SignInButton, SignUpButton, useUser } from '@clerk/nextjs';
 import { Button } from './ui/button';
 import { Lock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getLikedIds, getSavedIds } from '@/app/actions';
+import { getLikedIds, getSavedIds, toggleLikeAction } from '@/app/actions';
 
 export default function RecipeList({ initialData }: { initialData: any }) {
 	const { isSignedIn, user, isLoaded } = useUser();
@@ -42,9 +42,11 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 		queryKey: ['recipes', 'saved-ids'],
 		queryFn: getSavedIds,
 	});
+
 	const { data: likedIds = [] } = useQuery({
-		queryKey: ['recipes', 'liked-ids'],
-		queryFn: getLikedIds,
+		queryKey: ['likes', userId],
+		queryFn: () => getLikedIds(userId as string),
+		enabled: !!userId,
 	});
 
 	// 3. Centralized Data Switching

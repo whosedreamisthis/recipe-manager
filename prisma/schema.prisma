@@ -14,7 +14,6 @@ model Recipe {
   description  String
   author       String
   authorId     String
-  likes        Int      @default(0)
   prepTime     Int
   cookTime     Int
   image        String   @default("/placeholder-recipe.jpg")
@@ -22,4 +21,16 @@ model Recipe {
   ingredients  Json     // Postgres handles JSON well for complex objects
   instructions String[]
   createdAt    DateTime @default(now())
+  likes       Like[]   // Add this line
 }
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String   // The Clerk/User ID
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, recipeId]) // This is the "Magic" line - it prevents duplicates
+}
+

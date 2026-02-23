@@ -5,25 +5,46 @@ import { useRecentStore } from '@/stores/useRecentStore';
 import { useEffect, useState } from 'react';
 import RecipeCard from './RecipeCard';
 import { useQuery } from '@tanstack/react-query';
-import { getLikedIds, getSavedIds } from '@/app/actions';
+import { getLikedIds, getSavedIds, fetchRecipes } from '@/app/actions'; // Add fetchRecipes
+import { useUser } from '@clerk/nextjs';
 
-interface Props {
-	recipes: Recipe[];
-}
 export default function RecentList() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const recentRecipes = useRecentStore((state) => state.recentRecipes);
+	const { user } = useUser();
+	const userId = user?.id;
+
+	// 1. Get the current status of Saved/Liked IDs
 	const { data: savedIds = [] } = useQuery({
 		queryKey: ['recipes', 'saved-ids'],
 		queryFn: getSavedIds,
 	});
+
 	const { data: likedIds = [] } = useQuery({
-		queryKey: ['recipes', 'liked-ids'],
-		queryFn: getLikedIds,
+		queryKey: ['likes', userId],
+		queryFn: () => getLikedIds(userId as string),
+		enabled: !!userId,
 	});
+
+	// 2. IMPORTANT: Fetch the latest recipe data (including counts) from the DB
+	// This ensures the numbers on the cards are real, not stale LocalStorage values
+	const { data: freshRecipesData } = useQuery({
+		queryKey: ['recipes', 'recent-updates'],
+		queryFn: () => fetchRecipes(1, 100), // Get latest stats for recipes
+	});
+
 	useEffect(() => {
 		setIsHydrated(true);
 	}, []);
+
+	// 3. Merge LocalStorage "Recents" with Database "Likes"
+	const displayRecipes = recentRecipes.map((recent) => {
+		// Find the fresh version of this recipe in the DB data
+		const freshVersion = freshRecipesData?.recipes.find(
+			(r) => r.id === recent.id,
+		);
+		return freshVersion || recent; // Use DB version if found, otherwise fallback
+	});
 
 	if (!isHydrated) {
 		return (
@@ -44,7 +65,7 @@ export default function RecentList() {
 
 	return (
 		<div className="grid grid-cols-2 gap-5">
-			{recentRecipes.map((recipe) => (
+			{displayRecipes.map((recipe) => (
 				<RecipeCard
 					key={recipe.id}
 					recipe={recipe}
