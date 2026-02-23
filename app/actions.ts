@@ -55,9 +55,11 @@ export async function fetchRecipes(
 		// 5. Map the data to fix the "NaN" issue
 		// We transform the '_count' object into a single 'likes' number
 		// so the frontend stays clean and easy to read.
-		const formattedRecipes = recipes.map((r) => ({
+		const formattedRecipes = recipes.map((r: any) => ({
 			...r,
 			likes: r._count?.likes ?? 0, // Fallback to 0 if count is missing
+			ingredients: (r.ingredients as unknown) as Ingredient[],
+			instructions: (r.instructions as unknown) as string[],
 		}));
 
 		return {
@@ -74,23 +76,30 @@ export async function fetchRecipes(
 /**
  * Single Recipe: Fetch details for a specific ID from Postgres
  */
-export const fetchRecipe = async (recipeId: string) => {
+// app/actions.ts
+import { Recipe, Ingredient } from '@/lib/types'; // Ensure you import your types
+
+export const fetchRecipe = async (recipeId: string): Promise<Recipe | null> => {
 	try {
 		const recipe = await prisma.recipe.findUnique({
 			where: { id: recipeId },
 			include: {
 				_count: {
-					select: { likes: true }, // This creates the 'likes' number
+					select: { likes: true },
 				},
 			},
 		});
+
 		if (!recipe) return null;
 
-		// Map the database count to the simple 'likes' property used by your UI
+		// Explicitly cast and format the object to match the Recipe interface
 		return {
 			...recipe,
 			likes: recipe._count?.likes ?? 0,
-		};
+			// Type casting JsonValue to your specific types
+			ingredients: (recipe.ingredients as unknown) as Ingredient[],
+			instructions: (recipe.instructions as unknown) as string[],
+		} as Recipe;
 	} catch (error) {
 		console.error('Fetch Single Recipe Error:', error);
 		return null;
@@ -99,6 +108,7 @@ export const fetchRecipe = async (recipeId: string) => {
 
 // --- 🛠️ ADMIN / MUTATION ACTIONS ---
 
+// actions.ts
 export const addRecipe = async (recipeData: any) => {
 	try {
 		const newRecipe = await prisma.recipe.create({
@@ -107,12 +117,14 @@ export const addRecipe = async (recipeData: any) => {
 				description: recipeData.description,
 				author: recipeData.author,
 				authorId: recipeData.authorId,
-				prepTime: Number(recipeData.prepTime),
-				cookTime: Number(recipeData.cookTime),
+				// Ensure these are forced to numbers to avoid Vercel environment mismatches
+				prepTime: parseInt(recipeData.prepTime) || 0,
+				cookTime: parseInt(recipeData.cookTime) || 0,
 				image: recipeData.image,
 				categories: Array.isArray(recipeData.categories)
 					? [...recipeData.categories, 'My Recipes']
 					: ['My Recipes'],
+				// Ensure these arrays are passed correctly for JSON columns
 				ingredients: recipeData.ingredients,
 				instructions: recipeData.instructions,
 			},
@@ -122,8 +134,9 @@ export const addRecipe = async (recipeData: any) => {
 		revalidatePath('/recipes');
 		return { success: true, recipeId: newRecipe.id };
 	} catch (error) {
+		// Detailed logging is essential for Vercel logs (accessible via Vercel Dashboard)
 		console.error('Prisma Create Error:', error);
-		return { success: false };
+		return { success: false, error: 'Failed to save to database' };
 	}
 };
 

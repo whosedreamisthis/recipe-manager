@@ -16,14 +16,12 @@ interface Props {
 	isSaved: boolean; // Pass as prop
 	isLiked: boolean; // Pass as prop
 	index?: number;
-	onLike: () => void;
 }
 
 const RecipeCard = memo(function RecipeCard({
 	recipe,
 	isSaved,
 	isLiked,
-	onLike,
 	index,
 }: Props) {
 	const [imgSrc, setImgSrc] = useState(recipe.image || '');

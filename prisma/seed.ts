@@ -12,25 +12,27 @@ const connectionString = process.env.POSTGRES_PRISMA_URL;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 
-// In Prisma 7, the adapter is mandatory in the constructor
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
 	console.log('🚀 Start seeding...');
 
 	for (const recipe of SEED_RECIPES) {
-		const { id, ...recipeData } = recipe;
+		// 1. Destructure to pull 'id' and 'likes' out, so they aren't in 'restOfRecipeData'
+		const { id, likes, ...restOfRecipeData } = recipe;
 
 		await prisma.recipe.create({
 			data: {
-				...recipeData,
-				// INJECT MISSING FIELD HERE
+				...restOfRecipeData,
 				authorId: 'seed-admin-id',
 
-				// Ensure types are correct
-				prepTime: Number(recipeData.prepTime),
-				cookTime: Number(recipeData.cookTime),
-				categories: recipeData.categories || [],
+				// 2. Ensure types are correct for numbers and arrays
+				prepTime: Number(restOfRecipeData.prepTime) || 0,
+				cookTime: Number(restOfRecipeData.cookTime) || 0,
+				categories: restOfRecipeData.categories || [],
+
+				// 3. ingredients and instructions are handled automatically by Prisma
+				// if they are standard arrays in your seed data.
 			},
 		});
 	}
