@@ -50,42 +50,56 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 	// 3. Centralized Data Switching
 	// RecipeList.tsx
 	const displayRecipes = useMemo(() => {
-		// 1. Flatten pages while handling both array and object responses
+		// 1. Get the raw data based on the tab
 		const baseSet =
 			activeTab === 'saved'
 				? savedData ?? []
-				: dbData?.pages.flatMap((page: any) => {
-						// Check if page is the array itself or an object containing the array
-						return Array.isArray(page) ? page : page.recipes ?? [];
-				  }) ?? [];
+				: dbData?.pages.flatMap((page: any) =>
+						Array.isArray(page) ? page : page.recipes ?? [],
+				  ) ?? [];
 
 		if (baseSet.length === 0) return [];
 
-		// 2. SEARCH TAB: Server-side filtering is active
-		if (activeTab === 'search') {
-			// We only perform basic data sanitization here
-			return baseSet.filter(
-				(recipe) =>
-					recipe.title &&
-					recipe.image &&
-					recipe.title !== 'Untitled Recipe',
-			);
-		}
-
-		// 3. SAVED TAB: Perform local client-side filtering
+		// 2. Setup common filter variables
 		const lowerQuery = query.toLowerCase().trim();
+		const isMyRecipesCategory =
+			selectedCategory.toLowerCase().trim() === 'my recipes';
+
+		// 3. One Filter to rule them all
 		return baseSet.filter((recipe) => {
+			// Basic sanitization (always apply this)
+			if (
+				!recipe.title ||
+				!recipe.image ||
+				recipe.title === 'Untitled Recipe'
+			) {
+				return false;
+			}
+
 			const matchesQuery =
 				lowerQuery === '' ||
 				recipe.title.toLowerCase().includes(lowerQuery);
 
+			// Category Logic
 			const matchesCategory =
 				selectedCategory === '' ||
 				recipe.categories?.includes(selectedCategory);
 
+			// "My Recipes" Logic:
+			// If user selected "My Recipes", we ONLY keep recipes where the author matches.
+			const isAuthorMe = recipe.author === userName;
+
+			if (isMyRecipesCategory) {
+				// When "My Recipes" is selected, ignore standard category matching
+				// and only show my items that match the search query.
+				return isAuthorMe && matchesQuery;
+			}
+
+			// Normal behavior for other categories or "All"
 			return matchesQuery && matchesCategory;
 		});
-	}, [activeTab, dbData, savedData, query, selectedCategory]); // Remove userName from deps if not used in filter
+	}, [activeTab, dbData, savedData, query, selectedCategory, userName]);
+
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
