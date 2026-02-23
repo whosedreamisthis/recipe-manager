@@ -205,7 +205,9 @@ export default function RecipeDetails({ recipe }: Props) {
 						/>
 					</Button>
 					<span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">
-						{recipe.likes} Likes
+						{/* If the user just liked it, show the incremented count optimistically */}
+						{isLiked ? (recipe.likes || 0) + 1 : recipe.likes || 0}{' '}
+						Likes
 					</span>
 				</div>
 			</div>

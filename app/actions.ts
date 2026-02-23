@@ -78,6 +78,11 @@ export const fetchRecipe = async (recipeId: string) => {
 	try {
 		return await prisma.recipe.findUnique({
 			where: { id: recipeId },
+			include: {
+				_count: {
+					select: { likes: true }, // This creates the 'likes' number
+				},
+			},
 		});
 	} catch (error) {
 		console.error('Fetch Single Recipe Error:', error);
