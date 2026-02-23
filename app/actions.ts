@@ -126,6 +126,7 @@ export const addRecipe = async (recipeData: Omit<Recipe, 'id'>) => {
 		categories: [...recipeData.categories, 'My Recipes'],
 		id: newId,
 		author: recipeData.author || 'Guest',
+		authorId: recipeData.authorId || 'GuestId',
 		likes: recipeData.likes ?? 0,
 	};
 

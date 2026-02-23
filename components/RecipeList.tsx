@@ -16,7 +16,7 @@ import { getLikedIds, getSavedIds } from '@/app/actions';
 
 export default function RecipeList({ initialData }: { initialData: any }) {
 	const { isSignedIn, user, isLoaded } = useUser();
-	const userName = user?.fullName;
+	const userId = user?.id;
 
 	const query = useSearchStore((state) => state.query);
 	const selectedCategory = useCategoryStore(
@@ -87,7 +87,7 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 			// "My Recipes" Logic:
 			// If user selected "My Recipes", we ONLY keep recipes where the author matches.
-			const isAuthorMe = recipe.author === userName;
+			const isAuthorMe = recipe.authorId === userId;
 
 			if (isMyRecipesCategory) {
 				// When "My Recipes" is selected, ignore standard category matching
@@ -98,7 +98,7 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 			// Normal behavior for other categories or "All"
 			return matchesQuery && matchesCategory;
 		});
-	}, [activeTab, dbData, savedData, query, selectedCategory, userName]);
+	}, [activeTab, dbData, savedData, query, selectedCategory, userId]);
 
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (

@@ -47,6 +47,7 @@ export default function Step3Instructions() {
 			description: formData.description || '',
 			// Providing a default string here fixes the 'undefined' error
 			author: user?.fullName ? user.fullName : ('Guest User' as string),
+			authorId: user?.id ? user.id : 'guestId',
 			likes: 0,
 			prepTime: Number(formData.prepTime) || 0,
 			cookTime: Number(formData.cookTime) || 0,

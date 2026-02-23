@@ -16,4 +16,5 @@ export interface Recipe {
 	ingredients: Ingredient[];
 	instructions: string[];
 	author: string;
+	authorId?: string;
 }
