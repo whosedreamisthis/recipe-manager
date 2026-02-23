@@ -76,7 +76,7 @@ export async function fetchRecipes(
  */
 export const fetchRecipe = async (recipeId: string) => {
 	try {
-		return await prisma.recipe.findUnique({
+		const recipe = await prisma.recipe.findUnique({
 			where: { id: recipeId },
 			include: {
 				_count: {
@@ -84,6 +84,13 @@ export const fetchRecipe = async (recipeId: string) => {
 				},
 			},
 		});
+		if (!recipe) return null;
+
+		// Map the database count to the simple 'likes' property used by your UI
+		return {
+			...recipe,
+			likes: recipe._count?.likes ?? 0,
+		};
 	} catch (error) {
 		console.error('Fetch Single Recipe Error:', error);
 		return null;
@@ -103,13 +110,16 @@ export const addRecipe = async (recipeData: any) => {
 				prepTime: Number(recipeData.prepTime),
 				cookTime: Number(recipeData.cookTime),
 				image: recipeData.image,
-				categories: [...recipeData.categories, 'My Recipes'],
+				categories: Array.isArray(recipeData.categories)
+					? [...recipeData.categories, 'My Recipes']
+					: ['My Recipes'],
 				ingredients: recipeData.ingredients,
 				instructions: recipeData.instructions,
 			},
 		});
 
 		revalidatePath('/');
+		revalidatePath('/recipes');
 		return { success: true, recipeId: newRecipe.id };
 	} catch (error) {
 		console.error('Prisma Create Error:', error);
