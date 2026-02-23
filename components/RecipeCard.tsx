@@ -32,21 +32,29 @@ const RecipeCard = memo(function RecipeCard({
 	const userId = user?.id;
 
 	const { mutate: toggleSave } = useMutation({
-		mutationFn: () => toggleSaveAction(recipe.id),
-		onMutate: () => {
-			queryClient.cancelQueries({ queryKey: ['recipes', 'saved-ids'] });
+		// Pass userId here!
+		mutationFn: () => toggleSaveAction(recipe.id, userId as string),
+		onMutate: async () => {
+			if (!userId) {
+				toast.error('Please log in to save recipes');
+				throw new Error('Not authenticated');
+			}
+			await queryClient.cancelQueries({
+				queryKey: ['recipes', 'saved-ids', userId],
+			});
 			const previousSavedIds = queryClient.getQueryData([
 				'recipes',
 				'saved-ids',
+				userId,
 			]);
 
 			queryClient.setQueryData(
-				['recipes', 'saved-ids'],
+				['recipes', 'saved-ids', userId],
 				(old: string[] | undefined) => {
 					const current = old || [];
 					return current.includes(recipe.id)
-						? current.filter((id) => id !== recipe.id) // Remove if exists
-						: [...current, recipe.id]; // Add if not exists
+						? current.filter((id) => id !== recipe.id)
+						: [...current, recipe.id];
 				},
 			);
 
@@ -55,20 +63,20 @@ const RecipeCard = memo(function RecipeCard({
 		onError: (err, variables, context) => {
 			if (context?.previousSavedIds) {
 				queryClient.setQueryData(
-					['recipes', 'saved-ids'],
+					['recipes', 'saved-ids', userId],
 					context.previousSavedIds,
 				);
 			}
-
 			toast.error('Failed to save recipe');
 		},
 		onSettled: () => {
-			// Invalidate both the ID list and the full objects list for the Saved Tab
 			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-ids'],
+				queryKey: ['recipes', 'saved-ids', userId],
 			});
+
+			// 2. Refetches the actual list (recipe appears in Saved tab)
 			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-list'],
+				queryKey: ['recipes', 'saved-list', userId],
 			});
 		},
 	});

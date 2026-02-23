@@ -14,10 +14,11 @@ export default function RecentList() {
 	const { user } = useUser();
 	const userId = user?.id;
 
-	// 1. Get the current status of Saved/Liked IDs
+	// Inside RecipeList.tsx
 	const { data: savedIds = [] } = useQuery({
-		queryKey: ['recipes', 'saved-ids'],
-		queryFn: getSavedIds,
+		queryKey: ['recipes', 'saved-ids', userId], // Added userId to key
+		queryFn: () => getSavedIds(userId as string),
+		enabled: !!userId, // Only fetch if logged in
 	});
 
 	const { data: likedIds = [] } = useQuery({

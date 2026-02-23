@@ -22,6 +22,7 @@ model Recipe {
   instructions String[]
   createdAt    DateTime @default(now())
   likes       Like[]   // Add this line
+  savedBy   SavedRecipe[]
 }
 
 model Like {
@@ -34,3 +35,12 @@ model Like {
   @@unique([userId, recipeId]) // This is the "Magic" line - it prevents duplicates
 }
 
+model SavedRecipe {
+  id        String   @id @default(cuid())
+  userId    String   // The Clerk User ID
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, recipeId]) // Prevents a user from saving the same recipe twice
+}

@@ -38,9 +38,11 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 	const isLoading = activeTab === 'saved' ? isLoadingSaved : isLoadingSearch;
 
+	// Inside RecipeList.tsx
 	const { data: savedIds = [] } = useQuery({
-		queryKey: ['recipes', 'saved-ids'],
-		queryFn: getSavedIds,
+		queryKey: ['recipes', 'saved-ids', userId], // Added userId to key
+		queryFn: () => getSavedIds(userId as string),
+		enabled: !!userId, // Only fetch if logged in
 	});
 
 	const { data: likedIds = [] } = useQuery({

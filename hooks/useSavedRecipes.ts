@@ -3,12 +3,18 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSavedRecipes } from '@/app/actions';
+import { useUser } from '@clerk/nextjs';
 
 export function useSavedRecipes() {
+	const { user, isLoaded } = useUser();
+	const userId = user?.id;
+
 	return useQuery({
-		queryKey: ['recipes', 'saved-list'],
-		queryFn: () => getSavedRecipes(),
-		// Keep the data fresh, but don't over-fetch
+		// Add userId to queryKey so it refetches when user changes
+		queryKey: ['recipes', 'saved-list', userId],
+		// Only run the query if the user is actually loaded and logged in
+		queryFn: () => getSavedRecipes(userId as string),
+		enabled: isLoaded && !!userId,
 		staleTime: 1000 * 60 * 5,
 	});
 }

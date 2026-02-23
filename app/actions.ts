@@ -143,37 +143,88 @@ export async function fetchMyRecipes(userId: string) {
 // Note: For a real app, you'd want a separate "Like" table,
 // but for now, we can increment the like count on the recipe.
 
-export async function getSavedRecipes(ids: string[] = []): Promise<any[]> {
+export async function getSavedRecipes(userId: string): Promise<any[]> {
 	try {
-		if (ids.length === 0) return [];
+		if (!userId) return [];
 
-		const recipes = await prisma.recipe.findMany({
-			where: {
-				id: { in: ids },
+		// Find all entries in the SavedRecipe table for this user
+		const savedEntries = await prisma.savedRecipe.findMany({
+			where: { userId },
+			include: {
+				recipe: {
+					include: {
+						_count: {
+							select: { likes: true },
+						},
+					},
+				},
 			},
+			orderBy: { createdAt: 'desc' },
 		});
 
-		return recipes;
+		// Transform the result to return an array of recipe objects
+		return savedEntries.map((entry) => ({
+			...entry.recipe,
+			likes: entry.recipe._count?.likes ?? 0,
+		}));
 	} catch (error) {
 		console.error('Error fetching saved recipes:', error);
 		return [];
 	}
 }
 
-export async function toggleSaveAction(recipeId: string) {
-	// In a full DB implementation, this would connect to a 'SavedRecipes' table
-	// For now, we revalidate the paths to ensure the UI updates if you're using local state
-	console.log(`Toggle save triggered for: ${recipeId}`);
-
-	revalidatePath('/');
-	revalidatePath(`/recipes/${recipeId}`);
-
-	return { success: true };
+export async function getSavedIds(userId: string): Promise<string[]> {
+	if (!userId) return [];
+	try {
+		const saved = await prisma.savedRecipe.findMany({
+			where: { userId },
+			select: { recipeId: true },
+		});
+		return saved.map((s) => s.recipeId);
+	} catch (error) {
+		return [];
+	}
 }
 
-export async function getSavedIds(): Promise<string[]> {
-	// Eventually: return await prisma.savedRecipe.findMany(...)
-	return [];
+// app/actions.ts
+
+export async function toggleSaveAction(recipeId: string, userId: string) {
+	if (!userId) return { success: false, error: 'Auth Required' };
+
+	try {
+		// 1. Verify the Seed ID exists in the Recipe table
+		const recipeExists = await prisma.recipe.findUnique({
+			where: { id: recipeId },
+		});
+
+		if (!recipeExists) {
+			console.error(
+				`Database mismatch: Recipe ID "${recipeId}" not found.`,
+			);
+			return { success: false, error: 'Recipe does not exist' };
+		}
+
+		// 2. Check if already saved
+		const existing = await prisma.savedRecipe.findUnique({
+			where: {
+				userId_recipeId: { userId, recipeId },
+			},
+		});
+
+		if (existing) {
+			await prisma.savedRecipe.delete({ where: { id: existing.id } });
+		} else {
+			await prisma.savedRecipe.create({
+				data: { userId, recipeId },
+			});
+		}
+
+		revalidatePath('/');
+		return { success: true };
+	} catch (error) {
+		console.error('Save Action Error:', error);
+		return { success: false };
+	}
 }
 
 export async function toggleLikeAction(recipeId: string, userId: string) {
