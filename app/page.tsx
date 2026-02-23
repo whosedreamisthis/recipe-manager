@@ -11,7 +11,7 @@ export default async function Home() {
 	const initialData = await fetchRecipes(1, 12);
 
 	return (
-		<div className="container mx-auto px-4">
+		<div className="container mx-auto">
 			<SearchBar />
 			<CategoryBar />
 			<RecipeList initialData={initialData} />

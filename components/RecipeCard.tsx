@@ -2,7 +2,12 @@
 import { memo, useState, useEffect } from 'react';
 import { Bookmark, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
+import {
+	Card,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+} from './ui/recipe-card-base';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
@@ -146,18 +151,18 @@ const RecipeCard = memo(function RecipeCard({
 						/>
 					</div>
 
-					<CardHeader className="px-4 pt-4 pb-3">
-						<CardTitle className="group-hover:text-cyan-600 transition-colors mb-1 text-lg line-clamp-1">
+					<CardHeader className="px-1 pt-0 pb-3">
+						<CardTitle className="group-hover:text-cyan-600 transition-colors text-md line-clamp-1">
 							{recipe.title}
 						</CardTitle>
 
-						<CardDescription className="flex flex-col gap-1">
+						<CardDescription className="flex flex-col">
 							<span className="text-xs text-slate-500">
 								Ready in {recipe.prepTime + recipe.cookTime}{' '}
 								minutes
 							</span>
 
-							<div className="flex items-center gap-1 h-6 mt-1">
+							<div className="flex items-center gap-1 h-6 mt-0 -ml-1">
 								<div className="w-6" />
 								<span className="text-sm font-semibold text-slate-700">
 									{/* Shows actual count + 1 if liked locally */}
@@ -170,7 +175,7 @@ const RecipeCard = memo(function RecipeCard({
 			</Link>
 
 			{/* LIKE BUTTON */}
-			<div className="absolute bottom-[10px] left-[13px] z-20">
+			<div className="absolute bottom-[10px] left-[0px] z-20">
 				<Button
 					size="icon"
 					variant="ghost"

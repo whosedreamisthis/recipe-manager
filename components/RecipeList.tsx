@@ -106,7 +106,7 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (
-			<div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+			<div className="flex flex-col items-center justify-center py-20  bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
 				<div className="bg-white p-4 rounded-full shadow-sm mb-4">
 					<Lock className="w-8 h-8 text-cyan-600" />
 				</div>
@@ -156,8 +156,8 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 	}
 
 	return (
-		<div className="space-y-8 pb-20">
-			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+		<div className="space-y-8 pb-20 m-0">
+			<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
 				{displayRecipes.map((recipe, index) => (
 					<div key={recipe.id} className="recipe-card-container">
 						<RecipeCard

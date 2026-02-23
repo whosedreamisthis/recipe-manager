@@ -65,7 +65,7 @@ export default function RecentList() {
 	}
 
 	return (
-		<div className="grid grid-cols-2 gap-5">
+		<div className="grid grid-cols-2 gap-3">
 			{displayRecipes.map((recipe) => (
 				<RecipeCard
 					key={recipe.id}
