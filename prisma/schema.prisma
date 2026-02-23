@@ -1,0 +1,25 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Recipe {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  author       String
+  authorId     String
+  likes        Int      @default(0)
+  prepTime     Int
+  cookTime     Int
+  image        String   @default("/placeholder-recipe.jpg")
+  categories   String[] 
+  ingredients  Json     // Postgres handles JSON well for complex objects
+  instructions String[]
+  createdAt    DateTime @default(now())
+}

@@ -1,31 +1,7 @@
 'use server';
 
-import { SEED_RECIPES } from '@/data/seed-recipes';
-import { Recipe } from '@/lib/types';
+import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-
-// --- 🗄️ PERSISTENT MOCK DATABASE STATE ---
-type GlobalDatabase = {
-	db: Recipe[];
-	savedIds: Set<string>;
-	likedIds: Set<string>;
-};
-
-const globalForDb = (global as unknown) as GlobalDatabase;
-
-/**
- * Internal helper to initialize the global store.
- * Marked async to satisfy 'use server' requirements for exported helpers.
- */
-export const getDb = async () => {
-	if (!globalForDb.db) {
-		globalForDb.db = [...SEED_RECIPES];
-	}
-	if (!globalForDb.savedIds) globalForDb.savedIds = new Set<string>();
-	if (!globalForDb.likedIds) globalForDb.likedIds = new Set<string>();
-
-	return globalForDb;
-};
 
 // --- 🥗 RECIPE FETCHING ACTIONS ---
 
@@ -35,131 +11,168 @@ export async function fetchRecipes(
 	query: string = '',
 	category: string = '',
 ) {
-	await new Promise((resolve) => setTimeout(resolve, 500));
-	const { db } = await getDb();
+	const skip = (page - 1) * limit;
 
-	// FILTER ON THE SERVER
-	let filtered = db;
+	// Build the dynamic Prisma 'where' clause
+	const where: any = {};
+
 	if (query) {
-		filtered = filtered.filter((r) =>
-			r.title.toLowerCase().includes(query.toLowerCase()),
-		);
+		where.title = {
+			contains: query,
+			mode: 'insensitive', // Makes search case-insensitive
+		};
 	}
+
 	if (category && category !== 'My Recipes') {
-		filtered = filtered.filter((r) => r.categories.includes(category));
+		where.categories = {
+			has: category,
+		};
 	}
 
-	const start = (page - 1) * limit;
-	const recipes = filtered.slice(start, start + limit);
-	const hasMore = start + limit < filtered.length;
+	try {
+		const [recipes, totalCount] = await Promise.all([
+			prisma.recipe.findMany({
+				where,
+				skip,
+				take: limit,
+				orderBy: { createdAt: 'desc' },
+			}),
+			prisma.recipe.count({ where }),
+		]);
 
-	return { recipes, hasMore };
+		const hasMore = skip + limit < totalCount;
+
+		return {
+			// Prisma JSON fields need a quick cast to match your Recipe type
+			recipes: recipes as any[],
+			hasMore,
+		};
+	} catch (error) {
+		console.error('Fetch Recipes Error:', error);
+		return { recipes: [], hasMore: false };
+	}
 }
 
 /**
- * Single Recipe: Fetch details for a specific ID
+ * Single Recipe: Fetch details for a specific ID from Postgres
  */
 export const fetchRecipe = async (recipeId: string) => {
-	await new Promise((res) => setTimeout(res, 500));
-	const { db } = await getDb();
-
-	return db.find((recipe) => recipe.id === recipeId);
+	try {
+		return await prisma.recipe.findUnique({
+			where: { id: recipeId },
+		});
+	} catch (error) {
+		console.error('Fetch Single Recipe Error:', error);
+		return null;
+	}
 };
-
-// --- ❤️ SAVED / VAULT ACTIONS ---
-
-export async function getSavedRecipes(): Promise<Recipe[]> {
-	await new Promise((res) => setTimeout(res, 300));
-	const { db, savedIds } = await getDb();
-	return db.filter((recipe) => savedIds.has(recipe.id));
-}
-
-export async function getSavedIds(): Promise<string[]> {
-	const { savedIds } = await getDb();
-	return Array.from(savedIds);
-}
-
-export async function toggleSaveAction(recipeId: string) {
-	await new Promise((res) => setTimeout(res, 300));
-	const { savedIds } = await getDb();
-
-	if (savedIds.has(recipeId)) {
-		savedIds.delete(recipeId);
-	} else {
-		savedIds.add(recipeId);
-	}
-
-	revalidatePath('/');
-	revalidatePath(`/recipes/${recipeId}`);
-}
-
-// --- 👍 LIKE ACTIONS ---
-
-export async function getLikedIds(): Promise<string[]> {
-	const { likedIds } = await getDb();
-	return Array.from(likedIds);
-}
-
-export async function toggleLikeAction(recipeId: string) {
-	await new Promise((res) => setTimeout(res, 300));
-	const { likedIds } = await getDb();
-
-	if (likedIds.has(recipeId)) {
-		likedIds.delete(recipeId);
-	} else {
-		likedIds.add(recipeId);
-	}
-
-	revalidatePath('/');
-}
 
 // --- 🛠️ ADMIN / MUTATION ACTIONS ---
 
-export const addRecipe = async (recipeData: Omit<Recipe, 'id'>) => {
-	await new Promise((res) => setTimeout(res, 1000));
-	const { db } = await getDb();
+export const addRecipe = async (recipeData: any) => {
+	try {
+		const newRecipe = await prisma.recipe.create({
+			data: {
+				title: recipeData.title,
+				description: recipeData.description,
+				author: recipeData.author,
+				authorId: recipeData.authorId,
+				prepTime: Number(recipeData.prepTime),
+				cookTime: Number(recipeData.cookTime),
+				image: recipeData.image,
+				categories: [...recipeData.categories, 'My Recipes'],
+				ingredients: recipeData.ingredients,
+				instructions: recipeData.instructions,
+			},
+		});
 
-	const newId = crypto.randomUUID();
-
-	const newRecipe: Recipe = {
-		...recipeData,
-		categories: [...recipeData.categories, 'My Recipes'],
-		id: newId,
-		author: recipeData.author || 'Guest',
-		authorId: recipeData.authorId || 'GuestId',
-		likes: recipeData.likes ?? 0,
-	};
-
-	// Update the global reference array
-	globalForDb.db = [newRecipe, ...db];
-
-	revalidatePath('/');
-	revalidatePath(`/recipes/${newId}`);
-
-	console.log('new recipe', newRecipe);
-	return { success: true, recipeId: newId };
+		revalidatePath('/');
+		return { success: true, recipeId: newRecipe.id };
+	} catch (error) {
+		console.error('Prisma Create Error:', error);
+		return { success: false };
+	}
 };
 
 export const deleteRecipe = async (recipeId: string) => {
-	await new Promise((res) => setTimeout(res, 1000));
-	const { savedIds, likedIds } = await getDb();
+	try {
+		await prisma.recipe.delete({
+			where: { id: recipeId },
+		});
 
-	globalForDb.db = globalForDb.db.filter((recipe) => recipe.id !== recipeId);
-
-	savedIds.delete(recipeId);
-	likedIds.delete(recipeId);
-
-	revalidatePath('/');
-	return { success: true };
+		revalidatePath('/');
+		return { success: true };
+	} catch (error) {
+		console.error('Delete Error:', error);
+		return { success: false };
+	}
 };
 
-export async function fetchMyRecipes(name: string) {
-	await new Promise((resolve) => setTimeout(resolve, 500));
+export async function fetchMyRecipes(userId: string) {
+	try {
+		// Better to filter by authorId (unique Clerk ID) than author name
+		return await prisma.recipe.findMany({
+			where: { authorId: userId },
+			orderBy: { createdAt: 'desc' },
+		});
+	} catch (error) {
+		console.error('Fetch My Recipes Error:', error);
+		return [];
+	}
+}
 
-	// 1. Await getDb() to get the GlobalDatabase object
-	const { db } = await getDb();
+// --- ❤️ LIKES & SAVED (Simple Implementation) ---
+// Note: For a real app, you'd want a separate "Like" table,
+// but for now, we can increment the like count on the recipe.
 
-	// 2. Now you can call .filter() on the 'db' array
-	// This looks for recipes where the author matches your specific user string
-	return db.filter((recipe) => recipe.author === 'Guest User');
+export async function toggleLikeAction(recipeId: string) {
+	try {
+		await prisma.recipe.update({
+			where: { id: recipeId },
+			data: {
+				likes: { increment: 1 }, // Simplified logic
+			},
+		});
+		revalidatePath('/');
+	} catch (error) {
+		console.error('Like Error:', error);
+	}
+}
+
+export async function getSavedRecipes(ids: string[] = []): Promise<any[]> {
+	try {
+		if (ids.length === 0) return [];
+
+		const recipes = await prisma.recipe.findMany({
+			where: {
+				id: { in: ids },
+			},
+		});
+
+		return recipes;
+	} catch (error) {
+		console.error('Error fetching saved recipes:', error);
+		return [];
+	}
+}
+
+export async function toggleSaveAction(recipeId: string) {
+	// In a full DB implementation, this would connect to a 'SavedRecipes' table
+	// For now, we revalidate the paths to ensure the UI updates if you're using local state
+	console.log(`Toggle save triggered for: ${recipeId}`);
+
+	revalidatePath('/');
+	revalidatePath(`/recipes/${recipeId}`);
+
+	return { success: true };
+}
+
+export async function getSavedIds(): Promise<string[]> {
+	// Eventually: return await prisma.savedRecipe.findMany(...)
+	return [];
+}
+
+export async function getLikedIds(): Promise<string[]> {
+	// Eventually: return await prisma.like.findMany(...)
+	return [];
 }
