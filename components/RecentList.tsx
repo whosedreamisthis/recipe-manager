@@ -2,7 +2,7 @@
 import { Recipe } from '@/lib/types';
 import { useRecentStore } from '@/stores/useRecentStore';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import RecipeCard from './RecipeCard';
 import { useQuery } from '@tanstack/react-query';
 import { getLikedIds, getSavedIds, fetchRecipes } from '@/app/actions'; // Add fetchRecipes
@@ -49,6 +49,20 @@ export default function RecentList() {
 		return freshVersion || recent; // Use DB version if found, otherwise fallback
 	});
 
+	const handleLike = useCallback(
+		(id: string) => {
+			toggleLike(id);
+		},
+		[toggleLike],
+	);
+
+	const handleSave = useCallback(
+		(id: string) => {
+			toggleSave(id);
+		},
+		[toggleSave],
+	);
+
 	if (!isHydrated) {
 		return (
 			<div className="grid grid-cols-2 gap-5 opacity-0">
@@ -74,8 +88,8 @@ export default function RecentList() {
 					recipe={recipe}
 					isSaved={savedIds.includes(recipe.id)}
 					isLiked={likedIds.includes(recipe.id)}
-					onLike={() => toggleLike(recipe.id)}
-					onSave={() => toggleSave(recipe.id)}
+					onLike={handleLike}
+					onSave={handleSave}
 				/>
 			))}
 		</div>

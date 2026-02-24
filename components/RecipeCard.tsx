@@ -16,8 +16,8 @@ interface Props {
 	recipe: Recipe;
 	isSaved: boolean;
 	isLiked: boolean;
-	onLike: () => void;
-	onSave: () => void;
+	onLike: (id: string) => void;
+	onSave: (id: string) => void;
 	index?: number;
 }
 
@@ -81,7 +81,7 @@ const RecipeCard = memo(function RecipeCard({
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						onLike();
+						onLike(recipe.id);
 					}}
 				>
 					<ThumbsUp
@@ -104,7 +104,7 @@ const RecipeCard = memo(function RecipeCard({
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						onSave();
+						onSave(recipe.id);
 					}}
 					aria-label="Toggle save recipe"
 				>

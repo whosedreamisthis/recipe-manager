@@ -36,6 +36,10 @@ export default function RootLayout({
 			<html lang="en">
 				<head>
 					<link rel="preconnect" href="https://images.unsplash.com" />
+					<link
+						rel="dns-prefetch"
+						href="https://images.unsplash.com"
+					/>
 				</head>
 				<body
 					className={`flex flex-col ${roboto.className} antialiased`}
