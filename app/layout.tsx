@@ -44,14 +44,6 @@ export default function RootLayout({
 						rel="dns-prefetch"
 						href="https://images.unsplash.com"
 					/>
-					{/* Preload the specific font file if it's your LCP culprit */}
-					<link
-						rel="preload"
-						href="/fonts/your-font-file.woff2"
-						as="font"
-						type="font/woff2"
-						crossOrigin="anonymous"
-					/>
 				</head>
 				<body
 					className={`flex flex-col ${roboto.className} antialiased`}
