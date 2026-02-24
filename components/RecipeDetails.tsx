@@ -146,7 +146,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					<Button
 						variant="secondary"
 						size="icon"
-						className="rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:scale-110 transition-transform"
+						className="rounded-full bg-white/95 shadow-md hover:scale-110 transition-transform"
 						onClick={() => toggleSave(recipe.id)}
 					>
 						<Bookmark

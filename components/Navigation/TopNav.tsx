@@ -50,7 +50,7 @@ export default function TopNav() {
 
 	return (
 		<header className="flex flex-row justify-between items-center mr-2">
-			<div className="h-10 border-b border-slate-800 flex items-center px-4 backdrop-blur-md z-50">
+			<div className="h-10 border-b border-slate-800 flex items-center px-4 z-50 bg-white/95">
 				<div className="flex items-center gap-3 w-full">
 					{isDetailPage ? (
 						<Button

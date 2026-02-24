@@ -44,7 +44,7 @@ const RecipeCard = memo(function RecipeCard({
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
 							sizes="(max-width: 672px) 50vw, 336px"
-							priority={index !== undefined && index < 2}
+							priority={index !== undefined && index < 4}
 						/>
 					</div>
 
@@ -100,7 +100,7 @@ const RecipeCard = memo(function RecipeCard({
 				<Button
 					size="icon"
 					variant="secondary"
-					className="rounded-sm bg-white/80 backdrop-blur-sm shadow-sm"
+					className="rounded-sm bg-white/80 shadow-sm"
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
