@@ -11,12 +11,13 @@ import {
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
-import { useRecipeActions } from '@/hooks/useRecipeActions';
 
 interface Props {
 	recipe: Recipe;
-	isSaved: boolean; // Pass as prop
-	isLiked: boolean; // Pass as prop
+	isSaved: boolean;
+	isLiked: boolean;
+	onLike: () => void;
+	onSave: () => void;
 	index?: number;
 }
 
@@ -24,10 +25,10 @@ const RecipeCard = memo(function RecipeCard({
 	recipe,
 	isSaved,
 	isLiked,
+	onLike,
+	onSave,
 	index,
 }: Props) {
-	const { toggleSave, toggleLike } = useRecipeActions(recipe.id);
-
 	return (
 		<div className="relative group">
 			<Link
@@ -80,7 +81,7 @@ const RecipeCard = memo(function RecipeCard({
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						toggleLike();
+						onLike();
 					}}
 				>
 					<ThumbsUp
@@ -103,7 +104,7 @@ const RecipeCard = memo(function RecipeCard({
 					onClick={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						toggleSave();
+						onSave();
 					}}
 					aria-label="Toggle save recipe"
 				>

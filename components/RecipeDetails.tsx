@@ -37,9 +37,10 @@ interface Props {
 }
 
 export default function RecipeDetails({ recipe }: Props) {
-	const { toggleSave, toggleLike } = useRecipeActions(recipe.id);
 	const { user } = useUser();
 	const userId = user?.id;
+	const { toggleSave, toggleLike } = useRecipeActions(userId);
+
 	const queryClient = useQueryClient();
 	const router = useRouter();
 	const [isDeleting, startTransition] = useTransition();
@@ -146,7 +147,7 @@ export default function RecipeDetails({ recipe }: Props) {
 						variant="secondary"
 						size="icon"
 						className="rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:scale-110 transition-transform"
-						onClick={() => toggleSave()}
+						onClick={() => toggleSave(recipe.id)}
 					>
 						<Bookmark
 							className={`w-5 h-5 ${
@@ -222,7 +223,7 @@ export default function RecipeDetails({ recipe }: Props) {
 								? 'bg-cyan-50 border-cyan-200'
 								: 'hover:bg-slate-50'
 						}`}
-						onClick={() => toggleLike()}
+						onClick={() => toggleLike(recipe.id)}
 					>
 						<ThumbsUp
 							className={`w-6 h-6 ${

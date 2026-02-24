@@ -7,12 +7,14 @@ import RecipeCard from './RecipeCard';
 import { useQuery } from '@tanstack/react-query';
 import { getLikedIds, getSavedIds, fetchRecipes } from '@/app/actions'; // Add fetchRecipes
 import { useUser } from '@clerk/nextjs';
+import { useRecipeActions } from '@/hooks/useRecipeActions';
 
 export default function RecentList() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const recentRecipes = useRecentStore((state) => state.recentRecipes);
 	const { user } = useUser();
 	const userId = user?.id;
+	const { toggleLike, toggleSave } = useRecipeActions(userId);
 
 	// Inside RecipeList.tsx
 	const { data: savedIds = [] } = useQuery({
@@ -72,6 +74,8 @@ export default function RecentList() {
 					recipe={recipe}
 					isSaved={savedIds.includes(recipe.id)}
 					isLiked={likedIds.includes(recipe.id)}
+					onLike={() => toggleLike(recipe.id)}
+					onSave={() => toggleSave(recipe.id)}
 				/>
 			))}
 		</div>

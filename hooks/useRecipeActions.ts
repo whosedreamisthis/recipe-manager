@@ -5,23 +5,22 @@ import { toggleSaveAction, toggleLikeAction } from '@/app/actions';
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
 
-export function useRecipeActions(recipeId: string) {
+export function useRecipeActions(userId: string | undefined) {
+	// No longer takes recipeId here
 	const queryClient = useQueryClient();
-	const { user } = useUser();
-	const userId = user?.id;
 
-	// --- SAVE MUTATION (Keep as is) ---
+	// --- GLOBAL SAVE MUTATION ---
 	const { mutate: toggleSave } = useMutation({
-		mutationFn: () => toggleSaveAction(recipeId, userId as string),
-		onMutate: async () => {
+		mutationFn: (id: string) => toggleSaveAction(id, userId as string),
+		onMutate: async (id) => {
 			if (!userId) {
-				toast.error('Please log in to save recipes');
-				throw new Error('Not authenticated');
+				toast.error('Log in to save recipes');
+				return;
 			}
 			await queryClient.cancelQueries({
 				queryKey: ['recipes', 'saved-ids', userId],
 			});
-			const previousSavedIds = queryClient.getQueryData([
+			const previous = queryClient.getQueryData([
 				'recipes',
 				'saved-ids',
 				userId,
@@ -31,82 +30,68 @@ export function useRecipeActions(recipeId: string) {
 				['recipes', 'saved-ids', userId],
 				(old: string[] | undefined) => {
 					const current = old || [];
-					return current.includes(recipeId)
-						? current.filter((id) => id !== recipeId)
-						: [...current, recipeId];
+					return current.includes(id)
+						? current.filter((x) => x !== id)
+						: [...current, id];
 				},
 			);
-
-			return { previousSavedIds };
+			return { previous };
 		},
-		onError: (err, _, context) => {
-			if (context?.previousSavedIds) {
-				queryClient.setQueryData(
-					['recipes', 'saved-ids', userId],
-					context.previousSavedIds,
-				);
-			}
-			toast.error('Failed to save recipe');
+		onError: (_, __, context) => {
+			queryClient.setQueryData(
+				['recipes', 'saved-ids', userId],
+				context?.previous,
+			);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
 				queryKey: ['recipes', 'saved-ids', userId],
 			});
-			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-list', userId],
-			});
 		},
 	});
 
-	// --- LIKE MUTATION (Updated for Optimistic Count) ---
+	// --- GLOBAL LIKE MUTATION ---
 	const { mutate: toggleLike } = useMutation({
-		mutationFn: () => toggleLikeAction(recipeId, userId as string),
-		onMutate: async () => {
+		mutationFn: (id: string) => toggleLikeAction(id, userId as string),
+		onMutate: async (id: string) => {
 			if (!userId) {
-				toast.error('Please log in to like recipes');
-				throw new Error('Not authenticated');
+				toast.error('Log in to like recipes');
+				return;
 			}
 
-			// 1. Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: ['likes', userId] });
 			await queryClient.cancelQueries({ queryKey: ['recipes'] });
 
-			// 2. Snapshot current state
 			const previousLikedIds = queryClient.getQueryData([
 				'likes',
 				userId,
-			]);
-			const isCurrentlyLiked = (previousLikedIds as
-				| string[]
-				| undefined)?.includes(recipeId);
+			]) as string[] | undefined;
+			const isCurrentlyLiked = previousLikedIds?.includes(id);
 
-			// 3. Optimistically update liked IDs list
+			// 1. Update Liked IDs List
 			queryClient.setQueryData(
 				['likes', userId],
 				(old: string[] | undefined) => {
 					const current = old ?? [];
 					return isCurrentlyLiked
-						? current.filter((id) => id !== recipeId)
-						: [...current, recipeId];
+						? current.filter((x) => x !== id)
+						: [...current, id];
 				},
 			);
 
-			// 4. Optimistically update the LIKE COUNT in the main recipe list
-			// This prevents the "Double Like" bug by changing the data source
+			// 2. Update Counts in ['recipes'] cache
 			queryClient.setQueriesData(
 				{ queryKey: ['recipes'] },
 				(old: any) => {
 					if (!old) return old;
 
-					// Handle both infinite queries (pages) and standard queries
-					const updateRecipe = (r: any) => {
-						if (r.id !== recipeId) return r;
-						const currentLikes = r.likes ?? 0;
+					const updateFn = (r: any) => {
+						if (r.id !== id) return r;
 						return {
 							...r,
 							likes: isCurrentlyLiked
-								? Math.max(0, currentLikes - 1)
-								: currentLikes + 1,
+								? Math.max(0, (r.likes || 1) - 1)
+								: (r.likes || 0) + 1,
 						};
 					};
 
@@ -116,27 +101,24 @@ export function useRecipeActions(recipeId: string) {
 							pages: old.pages.map((page: any) => ({
 								...page,
 								recipes:
-									page.recipes?.map(updateRecipe) ||
-									page.map?.(updateRecipe),
+									page.recipes?.map(updateFn) ||
+									page.map?.(updateFn),
 							})),
 						};
 					}
 					return Array.isArray(old)
-						? old.map(updateRecipe)
-						: updateRecipe(old);
+						? old.map(updateFn)
+						: updateFn(old);
 				},
 			);
 
 			return { previousLikedIds };
 		},
-		onError: (err, _, context) => {
-			if (context?.previousLikedIds) {
-				queryClient.setQueryData(
-					['likes', userId],
-					context.previousLikedIds,
-				);
-			}
-			toast.error('Failed to like recipe');
+		onError: (_, __, context) => {
+			queryClient.setQueryData(
+				['likes', userId],
+				context?.previousLikedIds,
+			);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ['likes', userId] });

@@ -12,11 +12,13 @@ import { Button } from './ui/button';
 import { Lock } from 'lucide-react'; // Optimized import
 import { useQuery } from '@tanstack/react-query';
 import { getLikedIds, getSavedIds } from '@/app/actions';
+import { useRecipeActions } from '@/hooks/useRecipeActions';
 
 export default function RecipeList({ initialData }: { initialData: any }) {
 	const { isSignedIn, user, isLoaded } = useUser();
-	const userId = user?.id;
 
+	const userId = user?.id;
+	const { toggleLike, toggleSave } = useRecipeActions(userId);
 	const query = useSearchStore((state) => state.query);
 	const selectedCategory = useCategoryStore(
 		(state) => state.selectedCategory,
@@ -148,6 +150,8 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 						index={index}
 						isSaved={savedIds.includes(recipe.id)}
 						isLiked={likedIds.includes(recipe.id)}
+						onLike={() => toggleLike(recipe.id)}
+						onSave={() => toggleSave(recipe.id)}
 					/>
 				))}
 			</div>
