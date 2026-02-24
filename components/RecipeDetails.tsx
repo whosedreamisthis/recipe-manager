@@ -57,20 +57,25 @@ export default function RecipeDetails({ recipe }: Props) {
 	const isOwner = userId === recipe.authorId;
 
 	// --- 1. DATA FETCHING ---
-	const { data: likedIds = [] } = useQuery({
-		queryKey: ['likes', userId],
-		queryFn: () => getLikedIds(userId as string),
+	const { data: status = { isLiked: false, isSaved: false } } = useQuery({
+		queryKey: ['recipe-status', recipe.id, userId],
+		queryFn: async () => {
+			// You can create a new server action that calls both
+			// or just Promise.all existing ones here
+			const [likes, saved] = await Promise.all([
+				getLikedIds(userId as string),
+				getSavedIds(userId as string),
+			]);
+			return {
+				isLiked: likes.includes(recipe.id),
+				isSaved: saved.includes(recipe.id),
+			};
+		},
 		enabled: !!userId,
 	});
 
-	const { data: savedIds = [] } = useQuery({
-		queryKey: ['recipes', 'saved-ids', userId],
-		queryFn: () => getSavedIds(userId as string),
-		enabled: !!userId,
-	});
-
-	const isLiked = likedIds.includes(recipe.id);
-	const isSaved = savedIds.includes(recipe.id);
+	const isLiked = status.isLiked;
+	const isSaved = status.isSaved;
 
 	// --- 2. MUTATIONS ---
 	const { mutate: toggleLike } = useMutation({
@@ -94,8 +99,10 @@ export default function RecipeDetails({ recipe }: Props) {
 			toast.error('Failed to update like');
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ['likes', userId] });
-			queryClient.invalidateQueries({ queryKey: ['recipes'] });
+			// queryClient.invalidateQueries({ queryKey: ['likes', userId] });
+			queryClient.invalidateQueries({
+				queryKey: ['recipe-status', recipe.id, userId],
+			});
 		},
 	});
 
@@ -130,10 +137,7 @@ export default function RecipeDetails({ recipe }: Props) {
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-ids', userId],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-list', userId],
+				queryKey: ['recipe-status', recipe.id, userId],
 			});
 		},
 	});
@@ -180,7 +184,11 @@ export default function RecipeDetails({ recipe }: Props) {
 	};
 
 	useEffect(() => {
-		if (recipe) addRecent(recipe);
+		if (recipe) {
+			// Move this out of the critical path
+			const idleId = requestIdleCallback(() => addRecent(recipe));
+			return () => cancelIdleCallback(idleId);
+		}
 	}, [recipe, addRecent]);
 
 	return (

@@ -146,7 +146,7 @@ const RecipeCard = memo(function RecipeCard({
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
 							sizes="(max-width: 672px) 50vw, 336px"
-							priority={index !== undefined && index < 3}
+							priority={index !== undefined && index < 2}
 							onError={() => setImgSrc('/placeholder-recipe.jpg')}
 						/>
 					</div>
