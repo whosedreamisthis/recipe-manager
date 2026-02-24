@@ -11,10 +11,7 @@ import {
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Recipe } from '@/lib/types';
-import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toggleSaveAction, toggleLikeAction } from '@/app/actions';
-import { useUser } from '@clerk/nextjs';
+import { useRecipeActions } from '@/hooks/useRecipeActions';
 
 interface Props {
 	recipe: Recipe;
@@ -29,107 +26,7 @@ const RecipeCard = memo(function RecipeCard({
 	isLiked,
 	index,
 }: Props) {
-	const [imgSrc, setImgSrc] = useState(recipe.image || '');
-	const queryClient = useQueryClient();
-	const { user } = useUser(); // Get current user
-	const userId = user?.id;
-
-	const { mutate: toggleSave } = useMutation({
-		// Pass userId here!
-		mutationFn: () => toggleSaveAction(recipe.id, userId as string),
-		onMutate: async () => {
-			if (!userId) {
-				toast.error('Please log in to save recipes');
-				throw new Error('Not authenticated');
-			}
-			await queryClient.cancelQueries({
-				queryKey: ['recipes', 'saved-ids', userId],
-			});
-			const previousSavedIds = queryClient.getQueryData([
-				'recipes',
-				'saved-ids',
-				userId,
-			]);
-
-			queryClient.setQueryData(
-				['recipes', 'saved-ids', userId],
-				(old: string[] | undefined) => {
-					const current = old || [];
-					return current.includes(recipe.id)
-						? current.filter((id) => id !== recipe.id)
-						: [...current, recipe.id];
-				},
-			);
-
-			return { previousSavedIds };
-		},
-		onError: (err, variables, context) => {
-			if (context?.previousSavedIds) {
-				queryClient.setQueryData(
-					['recipes', 'saved-ids', userId],
-					context.previousSavedIds,
-				);
-			}
-			toast.error('Failed to save recipe');
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-ids', userId],
-			});
-
-			// 2. Refetches the actual list (recipe appears in Saved tab)
-			queryClient.invalidateQueries({
-				queryKey: ['recipes', 'saved-list', userId],
-			});
-		},
-	});
-
-	// --- LIKE MUTATION ---
-	const { mutate: toggleLike } = useMutation({
-		// IMPORTANT: Pass userId to the action
-		mutationFn: () => toggleLikeAction(recipe.id, userId as string),
-		onMutate: async () => {
-			if (!userId) {
-				toast.error('Please log in to like recipes');
-				throw new Error('Not authenticated');
-			}
-
-			await queryClient.cancelQueries({ queryKey: ['likes', userId] });
-			const previousLikedIds = queryClient.getQueryData([
-				'likes',
-				userId,
-			]);
-
-			queryClient.setQueryData(
-				['likes', userId],
-				(old: string[] | undefined) => {
-					const current = old ?? [];
-					return current.includes(recipe.id)
-						? current.filter((id) => id !== recipe.id)
-						: [...current, recipe.id];
-				},
-			);
-
-			return { previousLikedIds };
-		},
-		onError: (err, variables, context) => {
-			if (context?.previousLikedIds) {
-				queryClient.setQueryData(
-					['likes', userId],
-					context.previousLikedIds,
-				);
-			}
-			toast.error('Failed to like recipe');
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ['likes', userId] });
-			queryClient.invalidateQueries({ queryKey: ['recipes'] }); // Refresh counts
-		},
-	});
-
-	useEffect(() => {
-		setImgSrc(recipe.image || '');
-	}, [recipe.image]);
+	const { toggleSave, toggleLike } = useRecipeActions(recipe.id);
 
 	return (
 		<div className="relative group">
@@ -141,7 +38,7 @@ const RecipeCard = memo(function RecipeCard({
 				<Card className="overflow-hidden p-0 bg-white border-slate-200 transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-lg">
 					<div className="relative h-44 w-full overflow-hidden">
 						<Image
-							src={imgSrc || '/placeholder-recipe.jpg'}
+							src={recipe.image || '/placeholder-recipe.jpg'}
 							alt={recipe.title}
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"

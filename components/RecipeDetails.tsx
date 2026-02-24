@@ -29,20 +29,15 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-	getLikedIds,
-	getSavedIds,
-	toggleLikeAction,
-	toggleSaveAction,
-	deleteRecipe,
-} from '@/app/actions';
+import { useRecipeActions } from '@/hooks/useRecipeActions';
+import { getLikedIds, getSavedIds, deleteRecipe } from '@/app/actions';
 
 interface Props {
 	recipe: Recipe;
 }
 
 export default function RecipeDetails({ recipe }: Props) {
-	const [imgSrc, setImgSrc] = useState(recipe.image || '');
+	const { toggleSave, toggleLike } = useRecipeActions(recipe.id);
 	const { user } = useUser();
 	const userId = user?.id;
 	const queryClient = useQueryClient();
@@ -56,91 +51,22 @@ export default function RecipeDetails({ recipe }: Props) {
 
 	const isOwner = userId === recipe.authorId;
 
-	// --- 1. DATA FETCHING ---
-	const { data: status = { isLiked: false, isSaved: false } } = useQuery({
-		queryKey: ['recipe-status', recipe.id, userId],
-		queryFn: async () => {
-			// You can create a new server action that calls both
-			// or just Promise.all existing ones here
-			const [likes, saved] = await Promise.all([
-				getLikedIds(userId as string),
-				getSavedIds(userId as string),
-			]);
-			return {
-				isLiked: likes.includes(recipe.id),
-				isSaved: saved.includes(recipe.id),
-			};
-		},
+	// Fetch liked IDs using the SAME key as the hook/RecipeCard
+	const { data: likedIds = [] } = useQuery({
+		queryKey: ['likes', userId],
+		queryFn: () => getLikedIds(userId as string),
 		enabled: !!userId,
 	});
 
-	const isLiked = status.isLiked;
-	const isSaved = status.isSaved;
-
-	// --- 2. MUTATIONS ---
-	const { mutate: toggleLike } = useMutation({
-		mutationFn: () => toggleLikeAction(recipe.id, userId as string),
-		onMutate: async () => {
-			await queryClient.cancelQueries({ queryKey: ['likes', userId] });
-			const previous = queryClient.getQueryData(['likes', userId]);
-			queryClient.setQueryData(
-				['likes', userId],
-				(old: string[] | undefined) => {
-					const current = old ?? [];
-					return isLiked
-						? current.filter((id) => id !== recipe.id)
-						: [...current, recipe.id];
-				},
-			);
-			return { previous };
-		},
-		onError: (err, varbs, context) => {
-			queryClient.setQueryData(['likes', userId], context?.previous);
-			toast.error('Failed to update like');
-		},
-		onSettled: () => {
-			// queryClient.invalidateQueries({ queryKey: ['likes', userId] });
-			queryClient.invalidateQueries({
-				queryKey: ['recipe-status', recipe.id, userId],
-			});
-		},
+	// Fetch saved IDs using the SAME key as the hook/RecipeCard
+	const { data: savedIds = [] } = useQuery({
+		queryKey: ['recipes', 'saved-ids', userId],
+		queryFn: () => getSavedIds(userId as string),
+		enabled: !!userId,
 	});
 
-	const { mutate: toggleSave } = useMutation({
-		mutationFn: () => toggleSaveAction(recipe.id, userId as string),
-		onMutate: async () => {
-			await queryClient.cancelQueries({
-				queryKey: ['recipes', 'saved-ids', userId],
-			});
-			const previous = queryClient.getQueryData([
-				'recipes',
-				'saved-ids',
-				userId,
-			]);
-			queryClient.setQueryData(
-				['recipes', 'saved-ids', userId],
-				(old: string[] | undefined) => {
-					const current = old ?? [];
-					return isSaved
-						? current.filter((id) => id !== recipe.id)
-						: [...current, recipe.id];
-				},
-			);
-			return { previous };
-		},
-		onError: (err, varbs, context) => {
-			queryClient.setQueryData(
-				['recipes', 'saved-ids', userId],
-				context?.previous,
-			);
-			toast.error('Failed to save recipe');
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({
-				queryKey: ['recipe-status', recipe.id, userId],
-			});
-		},
-	});
+	const isLiked = likedIds.includes(recipe.id);
+	const isSaved = savedIds.includes(recipe.id);
 
 	// --- 3. HANDLERS ---
 	const handleDelete = () => {
@@ -206,13 +132,12 @@ export default function RecipeDetails({ recipe }: Props) {
 			{/* IMAGE SECTION */}
 			<div className="relative h-72 w-full overflow-hidden rounded-3xl shadow-xl border border-slate-100">
 				<Image
-					src={imgSrc || '/placeholder-recipe.jpg'}
+					src={recipe.image || '/placeholder-recipe.jpg'}
 					alt={recipe.title}
 					fill
 					className="object-cover"
 					priority
 					sizes="(max-width: 768px) 100vw, 700px"
-					onError={() => setImgSrc('/placeholder-recipe.jpg')}
 				/>
 				<div className="absolute top-4 right-4">
 					<Button
@@ -306,8 +231,7 @@ export default function RecipeDetails({ recipe }: Props) {
 						/>
 					</Button>
 					<span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-						{isLiked ? (recipe.likes || 0) + 1 : recipe.likes || 0}{' '}
-						Likes
+						{recipe.likes || 0} Likes
 					</span>
 				</div>
 			</div>
