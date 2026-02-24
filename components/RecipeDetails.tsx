@@ -235,7 +235,7 @@ export default function RecipeDetails({ recipe }: Props) {
 					<Button
 						size="sm"
 						onClick={addIngredientsToShoppingList}
-						className="rounded-full bg-cyan-600 hover:bg-cyan-700 shadow-md shadow-cyan-100"
+						className="bg-cyan-600 hover:bg-cyan-700 shadow-md shadow-cyan-100"
 					>
 						<PlusCircle className="w-4 h-4 mr-2" /> Add to List
 					</Button>
