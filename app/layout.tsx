@@ -32,6 +32,13 @@ export default function RootLayout({
 	return (
 		<ClerkProvider>
 			<html lang="en">
+				<head>
+					<link rel="preconnect" href="https://images.unsplash.com" />
+					<link
+						rel="dns-prefetch"
+						href="https://images.unsplash.com"
+					/>
+				</head>
 				<body
 					className={`flex flex-col ${roboto.className} antialiased`}
 				>
@@ -42,19 +49,15 @@ export default function RootLayout({
 						<main className="flex-1 overflow-y-auto no-scrollbar relative">
 							<div className="max-w-2xl mx-auto p-4">
 								<Suspense
-									fallback={
-										<div className="h-screen flex items-center justify-center">
-											Loading...
-										</div>
-									}
+									fallback={<div className="h-0 opacity-0" />}
 								>
 									{children}
 								</Suspense>
 							</div>
-							<Toaster position="bottom-right" richColors />
 						</main>
 						<BottomNav />
 					</Providers>
+					<Toaster position="bottom-right" richColors />
 				</body>
 			</html>
 		</ClerkProvider>

@@ -138,6 +138,8 @@ export default function RecipeDetails({ recipe }: Props) {
 					className="object-cover"
 					priority
 					sizes="(max-width: 768px) 100vw, 700px"
+					fetchPriority="high"
+					loading="eager"
 				/>
 				<div className="absolute top-4 right-4">
 					<Button
