@@ -5,14 +5,7 @@ import { useRecentStore } from '@/stores/useRecentStore';
 import { Recipe } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from './ui/button';
-import {
-	PlusCircle,
-	Bookmark,
-	ThumbsUp,
-	Trash2,
-	Loader2,
-	ChevronLeft,
-} from 'lucide-react';
+import { PlusCircle, Bookmark, ThumbsUp, Trash2, Loader2 } from 'lucide-react';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -120,16 +113,6 @@ export default function RecipeDetails({ recipe }: Props) {
 
 	return (
 		<div className="max-w-2xl mx-auto pb-20 px-4 pt-4">
-			{/* BACK BUTTON */}
-			<Button
-				variant="ghost"
-				size="sm"
-				onClick={() => router.back()}
-				className="mb-4 text-slate-500 hover:text-slate-900"
-			>
-				<ChevronLeft className="w-4 h-4 mr-1" /> Back
-			</Button>
-
 			{/* IMAGE SECTION */}
 			<div className="relative h-72 w-full overflow-hidden rounded-3xl shadow-xl border border-slate-100">
 				<Image
