@@ -27,9 +27,14 @@ export default function CategoryBar() {
 	const handleMouseMove = (e: React.MouseEvent) => {
 		if (!isDragging || !scrollRef.current) return;
 		e.preventDefault();
-		const x = e.pageX - scrollRef.current.offsetLeft;
-		const walk = (x - startX) * 2; // The '2' is the scroll speed
-		scrollRef.current.scrollLeft = scrollLeft - walk;
+
+		// Use rAF to decouple the event frequency from the DOM update
+		requestAnimationFrame(() => {
+			if (!scrollRef.current) return;
+			const x = e.pageX - scrollRef.current.offsetLeft;
+			const walk = (x - startX) * 2;
+			scrollRef.current.scrollLeft = scrollLeft - walk;
+		});
 	};
 
 	return (

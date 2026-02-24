@@ -33,7 +33,7 @@ export default function RootLayout({
 		<ClerkProvider>
 			<html lang="en">
 				<body
-					className={`flex flex-col ${roboto.variable} font-sans antialiased`}
+					className={`flex flex-col ${roboto.className} antialiased`}
 				>
 					<Providers>
 						<Suspense fallback={<div className="h-10" />}>
