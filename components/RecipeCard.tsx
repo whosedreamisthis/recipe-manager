@@ -21,6 +21,21 @@ interface Props {
 	index?: number;
 }
 
+const getOptimizedImage = (url: string | null) => {
+	if (!url) return '/placeholder-recipe.jpg';
+
+	// If it's an Unsplash image, append optimization params
+	if (url.includes('unsplash.com')) {
+		// w=800: Limits width to 800px (perfect for cards)
+		// q=75: Balanced quality vs file size
+		// auto=format: Automatically sends WebP or AVIF if the browser supports it
+		const connector = url.includes('?') ? '&' : '?';
+		return `${url}${connector}w=800&q=75&auto=format`;
+	}
+
+	return url;
+};
+
 const RecipeCard = memo(function RecipeCard({
 	recipe,
 	isSaved,
@@ -29,6 +44,7 @@ const RecipeCard = memo(function RecipeCard({
 	onSave,
 	index,
 }: Props) {
+	const imageUrl = getOptimizedImage(recipe.image);
 	return (
 		<div className="relative group">
 			<Link
@@ -39,7 +55,7 @@ const RecipeCard = memo(function RecipeCard({
 				<Card className="overflow-hidden p-0 bg-white border-slate-200 transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-lg">
 					<div className="relative h-44 w-full overflow-hidden">
 						<Image
-							src={recipe.image || '/placeholder-recipe.jpg'}
+							src={imageUrl}
 							alt={recipe.title}
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-110"
