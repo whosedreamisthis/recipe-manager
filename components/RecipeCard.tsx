@@ -53,7 +53,7 @@ const RecipeCard = memo(function RecipeCard({
 				aria-label={`View ${recipe.title} recipe`}
 			>
 				<Card className="overflow-hidden p-0 bg-white border-slate-200 transition-all duration-200 group-hover:border-cyan-500/50 group-hover:shadow-lg">
-					<div className="relative h-44 w-full overflow-hidden">
+					<div className="relative h-44 w-full overflow-hidden bg-slate-100">
 						<Image
 							src={imageUrl}
 							alt={recipe.title}
