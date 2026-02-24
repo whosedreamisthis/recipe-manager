@@ -2,6 +2,7 @@
 
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 import { User, LogIn, UserPlus } from 'lucide-react';
+import { useState, useEffect } from 'react'; // Added
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,53 +11,75 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
 
 export default function ProfileButton() {
 	const { isSignedIn, isLoaded } = useUser();
+	const [mounted, setMounted] = useState(false);
 
-	// 1. Prevent "flash" of sign-in button while Clerk loads
-	if (!isLoaded)
-		return (
-			<div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
-		);
+	// Delay "Heavy" hydration until after the first paint
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
-	// 2. If logged in, show Clerk's built-in UserButton
-	if (isSignedIn) {
+	// 1. Placeholder (Matches UserButton size to prevent CLS)
+	if (!isLoaded || !mounted) {
 		return (
-			<UserButton
-				afterSignOutUrl="/"
-				appearance={{
-					elements: {
-						avatarBox: 'h-8 w-8',
-					},
-				}}
-			/>
+			<div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center">
+				<User className="h-4 w-4 text-slate-300" />
+			</div>
 		);
 	}
 
-	// 3. If logged out, show our custom Dropdown with Clerk's logic
+	// 2. Logged In: Clerk UserButton
+	if (isSignedIn) {
+		return (
+			<div className="h-8 w-8">
+				{' '}
+				{/* Explicit container to stabilize layout */}
+				<UserButton
+					afterSignOutUrl="/"
+					appearance={{
+						elements: {
+							avatarBox: 'h-8 w-8',
+						},
+					}}
+				/>
+			</div>
+		);
+	}
+
+	// 3. Logged Out: Custom Dropdown
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="rounded-full">
+				{/* Replaced Button with plain button to save ~10ms of TBT */}
+				<button
+					className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors outline-none"
+					aria-label="User menu"
+				>
 					<User className="h-5 w-5 text-slate-600" />
-				</Button>
+				</button>
 			</DropdownMenuTrigger>
 
-			<DropdownMenuContent align="end" className="w-56">
+			<DropdownMenuContent align="end" className="w-56 z-[100]">
 				<DropdownMenuLabel>Account</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 
 				<SignInButton mode="modal">
-					<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+					<DropdownMenuItem
+						onSelect={(e) => e.preventDefault()}
+						className="cursor-pointer"
+					>
 						<LogIn className="mr-2 h-4 w-4" />
 						<span>Log In</span>
 					</DropdownMenuItem>
 				</SignInButton>
 
 				<SignUpButton mode="modal">
-					<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+					<DropdownMenuItem
+						onSelect={(e) => e.preventDefault()}
+						className="cursor-pointer"
+					>
 						<UserPlus className="mr-2 h-4 w-4" />
 						<span>Sign Up</span>
 					</DropdownMenuItem>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useMemo } from 'react';
+import { useCallback, useDeferredValue, useMemo } from 'react';
 import RecipeCard from './RecipeCard';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
@@ -41,7 +41,22 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 	const { data: savedData, isLoading: isLoadingSaved } = useSavedRecipes({
 		enabled: activeTab === 'saved',
 		userId,
+		isLoaded,
 	});
+
+	const handleLike = useCallback(
+		(id: string) => {
+			toggleLike(id);
+		},
+		[toggleLike],
+	);
+
+	const handleSave = useCallback(
+		(id: string) => {
+			toggleSave(id);
+		},
+		[toggleSave],
+	);
 
 	const isLoading = activeTab === 'saved' ? isLoadingSaved : isLoadingSearch;
 
@@ -150,8 +165,8 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 						index={index}
 						isSaved={savedIds.includes(recipe.id)}
 						isLiked={likedIds.includes(recipe.id)}
-						onLike={() => toggleLike(recipe.id)}
-						onSave={() => toggleSave(recipe.id)}
+						onSave={handleSave}
+						onLike={handleLike} // Now this is the same reference for every card
 					/>
 				))}
 			</div>

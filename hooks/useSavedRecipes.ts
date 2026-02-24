@@ -3,17 +3,17 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSavedRecipes } from '@/app/actions';
-import { useUser } from '@clerk/nextjs';
 
 export function useSavedRecipes({
 	enabled,
 	userId,
+	isLoaded,
 }: {
 	enabled: boolean;
 	userId: string | undefined;
-}) {
-	const { isLoaded } = useUser();
 
+	isLoaded: boolean;
+}) {
 	return useQuery({
 		// Add userId to queryKey so it refetches when user changes
 		queryKey: ['recipes', 'saved-list', userId],

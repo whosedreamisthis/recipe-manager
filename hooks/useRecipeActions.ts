@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toggleSaveAction, toggleLikeAction } from '@/app/actions';
-import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
 
 export function useRecipeActions(userId: string | undefined) {

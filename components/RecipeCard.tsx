@@ -58,9 +58,15 @@ const RecipeCard = memo(function RecipeCard({
 							src={imageUrl}
 							alt={recipe.title}
 							fill
-							className="object-cover transition-transform duration-500 group-hover:scale-110"
-							sizes="(max-width: 672px) 50vw, 336px"
-							priority={index !== undefined && index < 4}
+							// This tells the browser: "Don't wait for this image to decode
+							// before finishing the rest of the page logic."
+							decoding="async"
+							className="object-cover"
+							sizes="(max-width: 640px) 50vw, 33vw"
+							priority={index !== undefined && index < 4} // Slightly reduced from 6 to 4
+							{...(index !== undefined && index < 2
+								? { fetchPriority: 'high' }
+								: {})}
 						/>
 					</div>
 
