@@ -104,10 +104,16 @@ export default function RecipeDetails({ recipe }: Props) {
 	};
 
 	useEffect(() => {
-		if (recipe) {
-			// Move this out of the critical path
+		if (!recipe) return;
+
+		// Check if the browser supports it (Desktop Chrome does, iOS Safari might not)
+		if ('requestIdleCallback' in window) {
 			const idleId = requestIdleCallback(() => addRecent(recipe));
 			return () => cancelIdleCallback(idleId);
+		} else {
+			// Fallback for iPhone/Safari
+			const timeoutId = setTimeout(() => addRecent(recipe), 1);
+			return () => clearTimeout(timeoutId);
 		}
 	}, [recipe, addRecent]);
 
