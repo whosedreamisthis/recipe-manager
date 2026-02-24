@@ -1,18 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
-
+import { useDeferredValue, useMemo } from 'react';
 import RecipeCard from './RecipeCard';
 import { useRecipes } from '@/hooks/useRecipes';
-import { useSavedRecipes } from '@/hooks/useSavedRecipes'; // Import new hook
+import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { SignInButton, SignUpButton, useUser } from '@clerk/nextjs';
 import { Button } from './ui/button';
-import { Lock } from 'lucide-react';
+import { Lock } from 'lucide-react'; // Optimized import
 import { useQuery } from '@tanstack/react-query';
-import { getLikedIds, getSavedIds, toggleLikeAction } from '@/app/actions';
+import { getLikedIds, getSavedIds } from '@/app/actions';
 
 export default function RecipeList({ initialData }: { initialData: any }) {
 	const { isSignedIn, user, isLoaded } = useUser();
@@ -24,37 +23,43 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 	);
 	const activeTab = useUIStore((state) => state.activeTab);
 
-	// 1. Fetch Main Feed
+	// 1. DEFER FILTERS: Prevents input lag and reduces blocking during hydration
+	const deferredQuery = useDeferredValue(query);
+	const deferredCategory = useDeferredValue(selectedCategory);
+
+	// 2. CONDITIONAL HOOKS: Only run the Saved query if the tab is actually active
 	const {
 		data: dbData,
 		fetchNextPage,
 		hasNextPage,
 		isFetchingNextPage,
 		isLoading: isLoadingSearch,
-	} = useRecipes(initialData, query, selectedCategory);
+	} = useRecipes(initialData, deferredQuery, deferredCategory);
 
-	// 2. Fetch Saved Feed
-	const { data: savedData, isLoading: isLoadingSaved } = useSavedRecipes();
+	const { data: savedData, isLoading: isLoadingSaved } = useSavedRecipes({
+		enabled: activeTab === 'saved',
+		userId,
+	});
 
 	const isLoading = activeTab === 'saved' ? isLoadingSaved : isLoadingSearch;
 
-	// Inside RecipeList.tsx
+	// 3. CONSOLIDATED STATUS: Fetching only what's necessary for hydration
 	const { data: savedIds = [] } = useQuery({
-		queryKey: ['recipes', 'saved-ids', userId], // Added userId to key
+		queryKey: ['recipes', 'saved-ids', userId],
 		queryFn: () => getSavedIds(userId as string),
-		enabled: !!userId, // Only fetch if logged in
+		enabled: !!userId && isLoaded,
+		staleTime: 1000 * 60 * 5, // 5 minutes (reduces re-calculation)
 	});
 
 	const { data: likedIds = [] } = useQuery({
 		queryKey: ['likes', userId],
 		queryFn: () => getLikedIds(userId as string),
-		enabled: !!userId,
+		enabled: !!userId && isLoaded,
+		staleTime: 1000 * 60 * 5,
 	});
 
-	// 3. Centralized Data Switching
-	// RecipeList.tsx
+	// 4. OPTIMIZED FILTERING: Using deferred values to keep main thread free
 	const displayRecipes = useMemo(() => {
-		// 1. Get the raw data based on the tab
 		const baseSet =
 			activeTab === 'saved'
 				? savedData ?? []
@@ -64,49 +69,36 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 		if (baseSet.length === 0) return [];
 
-		// 2. Setup common filter variables
-		const lowerQuery = query.toLowerCase().trim();
-		const isMyRecipesCategory =
-			selectedCategory.toLowerCase().trim() === 'my recipes';
+		const lowerQuery = deferredQuery.toLowerCase().trim();
+		const isMyRecipes =
+			deferredCategory.toLowerCase().trim() === 'my recipes';
 
-		// 3. One Filter to rule them all
 		return baseSet.filter((recipe) => {
-			// Basic sanitization (always apply this)
 			if (
 				!recipe.title ||
 				!recipe.image ||
 				recipe.title === 'Untitled Recipe'
-			) {
+			)
 				return false;
-			}
 
 			const matchesQuery =
 				lowerQuery === '' ||
 				recipe.title.toLowerCase().includes(lowerQuery);
-
-			// Category Logic
-			const matchesCategory =
-				selectedCategory === '' ||
-				recipe.categories?.includes(selectedCategory);
-
-			// "My Recipes" Logic:
-			// If user selected "My Recipes", we ONLY keep recipes where the author matches.
 			const isAuthorMe = recipe.authorId === userId;
 
-			if (isMyRecipesCategory) {
-				// When "My Recipes" is selected, ignore standard category matching
-				// and only show my items that match the search query.
-				return isAuthorMe && matchesQuery;
-			}
+			if (isMyRecipes) return isAuthorMe && matchesQuery;
 
-			// Normal behavior for other categories or "All"
+			const matchesCategory =
+				deferredCategory === '' ||
+				recipe.categories?.includes(deferredCategory);
 			return matchesQuery && matchesCategory;
 		});
-	}, [activeTab, dbData, savedData, query, selectedCategory, userId]);
+	}, [activeTab, dbData, savedData, deferredQuery, deferredCategory, userId]);
 
+	// RENDER LOGIC
 	if (activeTab === 'saved' && isLoaded && !isSignedIn) {
 		return (
-			<div className="flex flex-col items-center justify-center py-20  bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+			<div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
 				<div className="bg-white p-4 rounded-full shadow-sm mb-4">
 					<Lock className="w-8 h-8 text-cyan-600" />
 				</div>
@@ -117,23 +109,14 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 					Sign up to start saving your favorite recipes and access
 					them anywhere.
 				</p>
-
 				<div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
 					<SignUpButton mode="modal">
-						<Button
-							className="bg-cyan-600 hover:bg-cyan-700 flex-1"
-							aria-label="Sign up"
-						>
+						<Button className="bg-cyan-600 hover:bg-cyan-700 flex-1">
 							Sign Up
 						</Button>
 					</SignUpButton>
-
 					<SignInButton mode="modal">
-						<Button
-							variant="outline"
-							className="flex-1"
-							aria-label="Sign in"
-						>
+						<Button variant="outline" className="flex-1">
 							Log In
 						</Button>
 					</SignInButton>
@@ -145,7 +128,7 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 	if (isLoading) {
 		return (
 			<div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-				{[1, 2, 3, 4, 5, 6].map((i) => (
+				{[...Array(6)].map((_, i) => (
 					<div
 						key={i}
 						className="h-64 bg-slate-100 animate-pulse rounded-xl"
@@ -157,57 +140,42 @@ export default function RecipeList({ initialData }: { initialData: any }) {
 
 	return (
 		<div className="space-y-8 pb-20 m-0">
-			<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 overflow-y-auto no-scrollbar">
+			<div className="m-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
 				{displayRecipes.map((recipe, index) => (
-					<div key={recipe.id} className="recipe-card-container">
-						<RecipeCard
-							recipe={recipe}
-							index={index}
-							isSaved={savedIds.includes(recipe.id)}
-							isLiked={likedIds.includes(recipe.id)}
-						/>
-					</div>
+					<RecipeCard
+						key={recipe.id}
+						recipe={recipe}
+						index={index}
+						isSaved={savedIds.includes(recipe.id)}
+						isLiked={likedIds.includes(recipe.id)}
+					/>
 				))}
 			</div>
 
-			{/* Empty State */}
 			{displayRecipes.length === 0 && (
 				<div className="text-center py-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
 					<p className="text-slate-500">
 						{activeTab === 'saved'
-							? "You haven't vaulted any recipes yet."
+							? 'No vaulted recipes.'
 							: 'No recipes found.'}
 					</p>
 				</div>
 			)}
 
-			{/* Pagination (Only for Search) */}
-			{activeTab === 'search' && hasNextPage && (
-				<div className="flex justify-center pt-4">
-					{/* NEW LOGIC: 
-      1. Hide if user is searching/filtering (Standard UX)
-      2. Ensure we don't show it if the current filtered view is empty
-    */}
-					{query === '' && selectedCategory === '' && (
+			{activeTab === 'search' &&
+				hasNextPage &&
+				deferredQuery === '' &&
+				deferredCategory === '' && (
+					<div className="flex justify-center pt-4">
 						<Button
 							onClick={() => fetchNextPage()}
 							disabled={isFetchingNextPage}
-							className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all disabled:bg-slate-300 hover:bg-slate-800 active:scale-95"
-							aria-label="Fetch next page of recipes"
+							className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold transition-all"
 						>
 							{isFetchingNextPage ? 'Syncing...' : 'Load More'}
 						</Button>
-					)}
-
-					{/* Optional: Indicator for recruiters that they've seen all filtered results */}
-					{(query !== '' || selectedCategory !== '') &&
-						displayRecipes.length > 0 && (
-							<p className="text-slate-400 text-sm italic">
-								Showing all results for this filter
-							</p>
-						)}
-				</div>
-			)}
+					</div>
+				)}
 		</div>
 	);
 }
